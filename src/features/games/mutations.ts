@@ -1,6 +1,5 @@
 import 'server-only'
 import { and, count, eq, ne } from 'drizzle-orm'
-import type { Locale } from 'next-intl'
 import { getDb } from '@/lib/db'
 import {
   MAX_CATEGORIES,
@@ -40,7 +39,7 @@ export class EditFailure extends Error {
 }
 
 /** Creates a draft with three empty categories; returns the secret token. */
-export async function createGame(locale: Locale): Promise<string> {
+export async function createGame(): Promise<string> {
   const token = generateEditToken()
   const gameId = crypto.randomUUID()
   const db = getDb()
@@ -49,7 +48,6 @@ export async function createGame(locale: Locale): Promise<string> {
       id: gameId,
       slug: draftSlug(),
       editTokenHash: hashEditToken(token),
-      locale,
     }),
     db.insert(categories).values(
       CATEGORY_COLORS.slice(0, MIN_CATEGORIES).map((color, i) => ({
@@ -65,7 +63,7 @@ export async function createGame(locale: Locale): Promise<string> {
 export async function updateGameMeta(gameId: string, input: GameMetaInput) {
   await getDb()
     .update(games)
-    .set({ title: input.title, locale: input.locale })
+    .set({ title: input.title })
     .where(eq(games.id, gameId))
 }
 

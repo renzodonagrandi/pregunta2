@@ -28,9 +28,12 @@ export function Editor({
   initialGame: EditorGame
 }) {
   const t = useTranslations('Editor')
+  const tc = useTranslations('Common')
   const [game, setGame] = useState(initialGame)
   const [status, setStatus] = useState<SaveStatus>('idle')
   const [error, setError] = useState<EditorActionError | 'UNKNOWN' | null>(null)
+  // Set when an edit takes a published game back to draft.
+  const [backToDraft, setBackToDraft] = useState(false)
   const [, startTransition] = useTransition()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
@@ -51,6 +54,7 @@ export function Editor({
         try {
           const result = await action()
           if (result.ok) {
+            setBackToDraft(game.published && !result.game.published)
             setGame(result.game)
             setStatus('saved')
             setError(null)
@@ -68,8 +72,6 @@ export function Editor({
       })
     })
 
-  const backToDraft = initialGame.published && !game.published
-
   return (
     <EditorContext value={{ token, game, run, setGame }}>
       <div className='mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 pt-3 pb-10'>
@@ -78,7 +80,7 @@ export function Editor({
             href='/'
             className='rounded-lg px-2 py-1 text-sm font-medium text-zinc-600 hover:bg-zinc-200/60'
           >
-            ← Pregunta2
+            ← {tc('appName')}
           </Link>
           <div className='flex items-center gap-2'>
             <span

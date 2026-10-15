@@ -19,7 +19,7 @@ export function PublishStep() {
   const { token, game, setGame } = useEditor()
   const [publishing, setPublishing] = useState(false)
   const [notReady, setNotReady] = useState(false)
-  const playLink = usePlayLink(game.slug, game.locale)
+  const playLink = usePlayLink(game.slug)
   const editLink = useEditLink(token)
   const issues = publishIssues(game)
 

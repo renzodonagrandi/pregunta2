@@ -127,12 +127,7 @@
     },
     "meta": {
       "title": "Nombre del juego",
-      "titlePlaceholder": "Ej.: Trivia de la oficina",
-      "locale": "Idioma del juego",
-      "locales": {
-        "es": "Español",
-        "pt-BR": "Português (Brasil)"
-      }
+      "titlePlaceholder": "Ej.: Trivia de la oficina"
     },
     "categories": {
       "heading": "Macacos ({count} de {max})",

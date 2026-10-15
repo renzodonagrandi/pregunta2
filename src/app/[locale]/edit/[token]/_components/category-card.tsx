@@ -23,9 +23,11 @@ import { useEditor } from './editor-context'
 export function CategoryCard({
   category,
   position,
+  onNameChange,
 }: {
   category: EditorCategory
   position: number
+  onNameChange: (name: string) => void
 }) {
   const t = useTranslations('Editor.categories')
   const tErrors = useTranslations('Editor.errors')
@@ -101,7 +103,10 @@ export function CategoryCard({
             value={name}
             maxLength={MAX_CATEGORY_NAME_LENGTH}
             placeholder={t('namePlaceholder')}
-            onChange={e => setName(e.target.value)}
+            onChange={e => {
+              setName(e.target.value)
+              onNameChange(e.target.value)
+            }}
             onBlur={() => {
               if (name.trim() !== category.name) void save({ name })
             }}

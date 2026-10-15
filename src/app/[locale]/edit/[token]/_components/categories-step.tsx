@@ -10,7 +10,6 @@ import {
   MIN_CATEGORIES,
 } from '@/features/games/constants'
 import { wheelSlices } from '@/features/match/wheel'
-import { routing } from '@/i18n/routing'
 import { addCategoryAction, updateGameMetaAction } from '../actions'
 import { CategoryCard } from './category-card'
 import { useEditor } from './editor-context'
@@ -20,20 +19,18 @@ export function CategoriesStep() {
   const tReveal = useTranslations('Match.reveal')
   const { token, game, run } = useEditor()
   const [title, setTitle] = useState(game.title)
+  // Names being typed, so the wheel preview updates live (saved on blur).
+  const [draftNames, setDraftNames] = useState<Record<string, string>>({})
 
-  const saveMeta = (next: { title?: string; locale?: string }) =>
-    run(() =>
-      updateGameMetaAction(token, {
-        title: next.title ?? title,
-        locale: next.locale ?? game.locale,
-      }),
-    )
+  const saveTitle = () => run(() => updateGameMetaAction(token, { title }))
 
   const slices = wheelSlices(
     {
       categories: game.categories.map((c, i) => ({
         ...c,
-        name: c.name || t('categories.unnamed', { position: i + 1 }),
+        name:
+          (draftNames[c.id] ?? c.name).trim() ||
+          t('categories.unnamed', { position: i + 1 }),
       })),
     },
     tReveal('crown'),
@@ -50,24 +47,10 @@ export function CategoriesStep() {
             placeholder={t('meta.titlePlaceholder')}
             onChange={e => setTitle(e.target.value)}
             onBlur={() => {
-              if (title.trim() !== game.title) void saveMeta({ title })
+              if (title.trim() !== game.title) void saveTitle()
             }}
             className='min-h-12 rounded-xl border border-zinc-300 px-3 text-lg outline-none focus:border-zinc-900'
           />
-        </label>
-        <label className='flex flex-col gap-1'>
-          <span className='text-sm font-semibold'>{t('meta.locale')}</span>
-          <select
-            value={game.locale}
-            onChange={e => void saveMeta({ locale: e.target.value })}
-            className='min-h-12 rounded-xl border border-zinc-300 bg-white px-3'
-          >
-            {routing.locales.map(l => (
-              <option key={l} value={l}>
-                {t(`meta.locales.${l}`)}
-              </option>
-            ))}
-          </select>
         </label>
       </section>
 
@@ -93,7 +76,14 @@ export function CategoriesStep() {
           </p>
         </div>
         {game.categories.map((c, i) => (
-          <CategoryCard key={c.id} category={c} position={i + 1} />
+          <CategoryCard
+            key={c.id}
+            category={c}
+            position={i + 1}
+            onNameChange={name =>
+              setDraftNames(prev => ({ ...prev, [c.id]: name }))
+            }
+          />
         ))}
         <Button
           variant='secondary'

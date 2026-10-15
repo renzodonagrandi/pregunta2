@@ -26,7 +26,6 @@ export async function PublishedGames() {
         <li key={game.slug}>
           <Link
             href={`/j/${game.slug}`}
-            locale={game.locale}
             aria-label={t('play', { title: game.title })}
             className='flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200 transition-colors hover:bg-zinc-50'
           >

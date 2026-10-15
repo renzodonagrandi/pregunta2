@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { routing } from '@/i18n/routing'
 import {
   MAX_CATEGORY_NAME_LENGTH,
   MAX_OPTION_LENGTH,
@@ -18,7 +17,6 @@ export const idSchema = z.uuid()
 
 export const gameMetaSchema = z.object({
   title: z.string().trim().max(MAX_TITLE_LENGTH),
-  locale: z.enum(routing.locales),
 })
 
 export const categoryUpdateSchema = z.object({

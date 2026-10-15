@@ -15,7 +15,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:seed": "node --env-file-if-exists=.env.local scripts/seed-demo.mts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

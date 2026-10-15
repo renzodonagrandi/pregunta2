@@ -1,5 +1,4 @@
 import { getTranslations } from 'next-intl/server'
-import { locale as rootLocale } from 'next/root-params'
 import { Suspense } from 'react'
 import { createGameAction } from './actions'
 import { CreateGameButton } from './_components/create-game-button'
@@ -9,10 +8,9 @@ import {
 } from './_components/published-games'
 
 export default async function HomePage() {
-  const [t, tc, locale] = await Promise.all([
+  const [t, tc] = await Promise.all([
     getTranslations('Home'),
     getTranslations('Common'),
-    rootLocale(),
   ])
 
   return (
@@ -23,7 +21,6 @@ export default async function HomePage() {
           {t('subtitle', { categories: tc('categories') })}
         </p>
         <form action={createGameAction} className='mt-2 w-full'>
-          <input type='hidden' name='locale' value={locale} />
           <CreateGameButton />
         </form>
         <p className='text-sm text-zinc-500'>{t('createHint')}</p>

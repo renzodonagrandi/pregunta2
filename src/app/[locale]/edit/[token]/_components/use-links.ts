@@ -1,8 +1,6 @@
 'use client'
 
-import { useLocale, type Locale } from 'next-intl'
 import { useSyncExternalStore } from 'react'
-import { getPathname } from '@/i18n/navigation'
 
 const noopSubscribe = () => () => {}
 
@@ -15,14 +13,10 @@ function useOrigin(): string {
   )
 }
 
-/** Public play link; uses the game's locale so it opens in its language. */
-export function usePlayLink(slug: string, gameLocale: Locale): string {
-  const origin = useOrigin()
-  return `${origin}${getPathname({ href: `/j/${slug}`, locale: gameLocale })}`
+export function usePlayLink(slug: string): string {
+  return `${useOrigin()}/j/${slug}`
 }
 
 export function useEditLink(token: string): string {
-  const origin = useOrigin()
-  const locale = useLocale()
-  return `${origin}${getPathname({ href: `/edit/${token}`, locale })}`
+  return `${useOrigin()}/edit/${token}`
 }

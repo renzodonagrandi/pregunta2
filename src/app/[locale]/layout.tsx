@@ -18,7 +18,10 @@ export function generateStaticParams() {
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Metadata')
-  return { title: t('title'), description: t('description') }
+  return {
+    title: { default: t('title'), template: `%s · ${t('title')}` },
+    description: t('description'),
+  }
 }
 
 export default async function LocaleLayout({

@@ -22,7 +22,6 @@ function game(categories: EditorCategory[], title = 'Juego'): EditorGame {
     id: 'g',
     slug: 's',
     title,
-    locale: 'es',
     published: false,
     categories,
   }

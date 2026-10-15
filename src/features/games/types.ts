@@ -1,17 +1,14 @@
-import type { Locale } from 'next-intl'
 import type { GameDefinition } from '@/features/match/engine'
 
 /** A published game as the play page needs it: definition plus routing data. */
 export interface PlayableGame extends GameDefinition {
   slug: string
-  locale: Locale
 }
 
 /** Card on the home page. */
 export interface GameSummary {
   slug: string
   title: string
-  locale: Locale
   categories: {
     id: string
     name: string
@@ -40,7 +37,6 @@ export interface EditorGame {
   id: string
   slug: string
   title: string
-  locale: Locale
   published: boolean
   categories: EditorCategory[]
 }

@@ -22,7 +22,6 @@ function questions(categoryId: string, list: Q[]): QuestionDef[] {
 export const SAMPLE_GAME: PlayableGame = {
   id: 'sample',
   slug: 'demo',
-  locale: 'es',
   title: 'Trivia de prueba',
   categories: [
     { id: 'geo', name: 'Geografía', color: '#1565C0', imageUrl: null },

@@ -1,4 +1,10 @@
+import { existsSync } from 'node:fs'
 import { defineConfig, devices } from '@playwright/test'
+
+// Tests talk to the same Neon/Blob as the app (for cleanup).
+if (!process.env.DATABASE_URL && existsSync('.env.local')) {
+  process.loadEnvFile('.env.local')
+}
 
 const PORT = 3100
 

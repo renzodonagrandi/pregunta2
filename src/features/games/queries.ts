@@ -1,8 +1,6 @@
 import 'server-only'
 import { and, asc, desc, eq, inArray } from 'drizzle-orm'
-import { hasLocale } from 'next-intl'
 import { cacheLife, cacheTag } from 'next/cache'
-import { routing } from '@/i18n/routing'
 import { getDb } from '@/lib/db'
 import { categories, games, questions } from './schema'
 import { hashEditToken } from './tokens'
@@ -17,10 +15,6 @@ export const PUBLISHED_GAMES_TAG = 'games:published'
 export const gameTag = (gameId: string) => `game:${gameId}`
 
 type GameRow = typeof games.$inferSelect
-
-function toLocale(value: string) {
-  return hasLocale(routing.locales, value) ? value : routing.defaultLocale
-}
 
 async function loadCategoriesWithQuestions(
   gameId: string,
@@ -63,7 +57,6 @@ function toEditorGame(row: GameRow, cats: EditorCategory[]): EditorGame {
     id: row.id,
     slug: row.slug,
     title: row.title,
-    locale: toLocale(row.locale),
     published: row.published,
     categories: cats,
   }
@@ -90,7 +83,6 @@ export async function getPlayableGame(
     id: row.id,
     slug: row.slug,
     title: row.title,
-    locale: toLocale(row.locale),
     categories: cats.map(({ id, name, color, imageUrl }) => ({
       id,
       name,
@@ -130,7 +122,6 @@ export async function listPublishedGames(): Promise<GameSummary[]> {
   return rows.map(r => ({
     slug: r.slug,
     title: r.title,
-    locale: toLocale(r.locale),
     categories: cats
       .filter(c => c.gameId === r.id)
       .map(({ id, name, color, imageUrl }) => ({ id, name, color, imageUrl })),
