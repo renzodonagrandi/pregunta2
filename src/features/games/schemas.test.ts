@@ -54,3 +54,33 @@ describe('schema errors', () => {
     expect(parsed.imageUrl).toBeNull()
   })
 })
+
+describe('errors the question form reads', () => {
+  const base = { text: 'q', options: ['a', 'b', 'c', 'd'], correctIndex: 0 }
+
+  it('flags duplicated options with DUPLICATE_OPTIONS on path options', () => {
+    const r = questionInputSchema.safeParse({
+      ...base,
+      options: ['a', 'A', 'c', 'd'],
+    })
+    expect(r.success).toBe(false)
+    expect(r.error?.issues).toContainEqual(
+      expect.objectContaining({
+        message: 'DUPLICATE_OPTIONS',
+        path: ['options'],
+      }),
+    )
+  })
+
+  it('reports empty fields without the duplicate message', () => {
+    const r = questionInputSchema.safeParse({
+      ...base,
+      text: '  ',
+      options: ['a', '', 'c', 'd'],
+    })
+    expect(r.success).toBe(false)
+    expect(r.error?.issues.some(i => i.message === 'DUPLICATE_OPTIONS')).toBe(
+      false,
+    )
+  })
+})
