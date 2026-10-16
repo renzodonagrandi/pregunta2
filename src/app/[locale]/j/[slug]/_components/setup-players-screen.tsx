@@ -30,16 +30,16 @@ export function SetupPlayersScreen({
   return (
     <form
       onSubmit={onSubmit}
-      className='flex flex-1 flex-col gap-5 pt-6'
+      className='flex flex-1 flex-col gap-6 pt-8'
       noValidate
     >
-      <div className='text-center'>
-        <h2 className='text-3xl font-bold'>{t('title')}</h2>
-        <p className='mt-1 text-zinc-600'>{t('subtitle')}</p>
+      <div>
+        <h2 className='font-display text-4xl font-bold'>{t('title')}</h2>
+        <p className='mt-2 text-mist'>{t('subtitle')}</p>
       </div>
       {([0, 1] as const).map(i => (
-        <label key={i} className='flex flex-col gap-1'>
-          <span className='text-sm font-semibold'>
+        <label key={i} className='flex flex-col gap-2'>
+          <span className='font-display text-sm font-semibold text-mist'>
             {i === 0 ? t('player1') : t('player2')}
           </span>
           <input
@@ -54,10 +54,10 @@ export function SetupPlayersScreen({
             autoComplete='off'
             enterKeyHint={i === 0 ? 'next' : 'go'}
             aria-invalid={showErrors && invalid[i]}
-            className='min-h-12 rounded-2xl border border-zinc-300 bg-white px-4 text-lg outline-none focus:border-zinc-900 aria-invalid:border-red-600'
+            className='min-h-14 rounded-xl border-2 border-night-700 bg-night-800 px-4 font-display text-xl text-chalk outline-none placeholder:text-night-600 focus:border-amber aria-invalid:border-bad'
           />
           {showErrors && invalid[i] && (
-            <span className='text-sm text-red-700'>
+            <span className='text-sm text-[#ff8a8e]'>
               {t('nameError', { max: MAX_NAME_LENGTH })}
             </span>
           )}

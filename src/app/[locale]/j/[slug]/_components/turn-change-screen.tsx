@@ -6,11 +6,19 @@ export function TurnChangeScreen({ state, dispatch }: ScreenProps) {
   const t = useTranslations('Match.turn')
   const name = state.players[state.current].name
   return (
-    <div className='flex flex-1 animate-pop flex-col items-center justify-center gap-4 text-center'>
-      <h2 className='text-4xl font-extrabold'>{t('title', { name })}</h2>
-      <p className='text-zinc-600'>{t('subtitle', { name })}</p>
+    <div className='flex flex-1 flex-col gap-6'>
+      <div className='flex flex-1 animate-pop flex-col justify-center gap-3'>
+        <p className='font-display text-lg text-mist' aria-hidden>
+          {t('kicker')}
+        </p>
+        <h2 className='font-display text-6xl leading-none font-bold break-words text-amber'>
+          <span className='sr-only'>{t('title', { name })}</span>
+          <span aria-hidden>{name}</span>
+        </h2>
+        <p className='mt-2 text-mist'>{t('subtitle', { name })}</p>
+      </div>
       <Button
-        className='mt-6 w-full text-lg'
+        className='w-full text-lg lg:max-w-sm'
         onClick={() => dispatch({ type: 'START_TURN' })}
       >
         {t('ready')}

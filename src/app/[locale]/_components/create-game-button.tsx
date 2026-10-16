@@ -8,7 +8,11 @@ export function CreateGameButton() {
   const t = useTranslations('Home')
   const { pending } = useFormStatus()
   return (
-    <Button type='submit' className='w-full text-lg' disabled={pending}>
+    <Button
+      type='submit'
+      className='w-full px-8 text-lg sm:w-auto'
+      disabled={pending}
+    >
       {pending ? t('creating') : t('create')}
     </Button>
   )

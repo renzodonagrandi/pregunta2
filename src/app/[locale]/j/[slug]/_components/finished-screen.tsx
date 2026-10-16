@@ -13,19 +13,34 @@ export function FinishedScreen({
   const t = useTranslations('Match.finished')
   const name = state.players[phase.winner].name
   return (
-    <div className='flex flex-1 flex-col items-center gap-4 text-center'>
-      <div className='flex flex-1 animate-pop flex-col items-center justify-center gap-3'>
-        <Image src={CROWN_IMAGE} alt='' width={120} height={120} priority />
-        <h2 className='text-4xl font-extrabold'>{t('title', { name })}</h2>
-        <p className='text-zinc-600'>{t('subtitle')}</p>
+    <div className='flex flex-1 flex-col gap-3'>
+      <div className='flex flex-1 animate-pop flex-col items-center justify-center gap-4 text-center'>
+        <Image
+          src={CROWN_IMAGE}
+          alt=''
+          width={140}
+          height={140}
+          priority
+          className='drop-shadow-[0_8px_24px_rgba(242,169,59,0.45)]'
+        />
+        <h2 className='font-display text-5xl leading-tight font-bold break-words text-amber'>
+          {t('title', { name })}
+        </h2>
+        <p className='text-mist'>{t('subtitle')}</p>
       </div>
       <Button
-        className='w-full text-lg'
+        className='w-full text-lg lg:max-w-sm lg:self-center'
         onClick={() => dispatch({ type: 'REMATCH' })}
       >
         {t('rematch')}
       </Button>
-      <Link href='/' className={buttonClass('secondary', 'w-full')}>
+      <Link
+        href='/'
+        className={buttonClass(
+          'outline',
+          'w-full text-chalk lg:max-w-sm lg:self-center',
+        )}
+      >
         {t('home')}
       </Link>
     </div>

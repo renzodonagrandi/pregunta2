@@ -13,6 +13,7 @@ import { wheelSlices } from '@/features/match/wheel'
 import { addCategoryAction, updateGameMetaAction } from '../actions'
 import { CategoryCard } from './category-card'
 import { useEditor } from './editor-context'
+import { INPUT_CLASS } from './styles'
 
 export function CategoriesStep() {
   const t = useTranslations('Editor')
@@ -37,10 +38,13 @@ export function CategoriesStep() {
   )
 
   return (
-    <div className='flex flex-col gap-6'>
-      <section className='flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-sm'>
-        <label className='flex flex-col gap-1'>
-          <span className='text-sm font-semibold'>{t('meta.title')}</span>
+    // Desktop: game name and live wheel pinned on the left, categories on the right.
+    <div className='grid gap-8 lg:grid-cols-[20rem_1fr] lg:gap-12'>
+      <aside className='flex flex-col gap-6 lg:sticky lg:top-20 lg:self-start'>
+        <label className='flex flex-col gap-2'>
+          <span className='font-display text-sm font-semibold'>
+            {t('meta.title')}
+          </span>
           <input
             value={title}
             maxLength={MAX_TITLE_LENGTH}
@@ -49,52 +53,53 @@ export function CategoriesStep() {
             onBlur={() => {
               if (title.trim() !== game.title) void saveTitle()
             }}
-            className='min-h-12 rounded-xl border border-zinc-300 px-3 text-lg outline-none focus:border-zinc-900'
+            className={INPUT_CLASS}
           />
         </label>
-      </section>
+        <section className='flex flex-col gap-3'>
+          <h2 className='font-display text-sm font-semibold text-night/70'>
+            {t('categories.preview')}
+          </h2>
+          <div className='mx-auto w-full max-w-64 lg:max-w-none'>
+            <Wheel slices={slices} label={t('categories.preview')} />
+          </div>
+        </section>
+      </aside>
 
-      <section className='flex flex-col items-center gap-2'>
-        <h2 className='self-start text-sm font-semibold text-zinc-600'>
-          {t('categories.preview')}
-        </h2>
-        <div className='w-full max-w-64'>
-          <Wheel slices={slices} label={t('categories.preview')} />
-        </div>
-      </section>
-
-      <section className='flex flex-col gap-3'>
+      <section className='flex flex-col gap-4'>
         <div>
-          <h2 className='text-xl font-bold'>
+          <h2 className='font-display text-2xl font-bold'>
             {t('categories.heading', {
               count: game.categories.length,
               max: MAX_CATEGORIES,
             })}
           </h2>
-          <p className='text-sm text-zinc-600'>
+          <p className='mt-1 text-sm text-night/70'>
             {t('categories.hint', { min: MIN_CATEGORIES, max: MAX_CATEGORIES })}
           </p>
         </div>
-        {game.categories.map((c, i) => (
-          <CategoryCard
-            key={c.id}
-            category={c}
-            position={i + 1}
-            onNameChange={name =>
-              setDraftNames(prev => ({ ...prev, [c.id]: name }))
-            }
-          />
-        ))}
+        <div className='grid gap-4 xl:grid-cols-2'>
+          {game.categories.map((c, i) => (
+            <CategoryCard
+              key={c.id}
+              category={c}
+              position={i + 1}
+              onNameChange={name =>
+                setDraftNames(prev => ({ ...prev, [c.id]: name }))
+              }
+            />
+          ))}
+        </div>
         <Button
-          variant='secondary'
-          className='w-full'
+          variant='outline'
+          className='w-full border-dashed'
           disabled={game.categories.length >= MAX_CATEGORIES}
           onClick={() => void run(() => addCategoryAction(token))}
         >
-          + {t('categories.add')}
+          {t('categories.add')}
         </Button>
         {game.categories.length >= MAX_CATEGORIES && (
-          <p className='text-center text-sm text-zinc-500'>
+          <p className='text-center text-sm text-night/60'>
             {t('categories.maxReached', { max: MAX_CATEGORIES })}
           </p>
         )}

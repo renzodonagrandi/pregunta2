@@ -11,6 +11,7 @@ function category(id: string, name: string, questions: number): EditorCategory {
     questions: Array.from({ length: questions }, (_, i) => ({
       id: `${id}${i}`,
       text: 'q',
+      imageUrl: null,
       options: ['a', 'b', 'c', 'd'],
       correctIndex: 0,
     })),

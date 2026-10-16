@@ -8,9 +8,9 @@ export function MatchSkeleton() {
       className='mx-auto flex w-full max-w-md flex-1 animate-pulse flex-col gap-4 px-4 pt-3 pb-6'
       aria-busy
     >
-      <div className='h-10 rounded-xl bg-zinc-200' />
-      <div className='h-28 rounded-2xl bg-zinc-200' />
-      <div className='aspect-square w-full rounded-full bg-zinc-200' />
+      <div className='h-11 rounded-xl bg-night-800' />
+      <div className='h-[6.5rem] rounded-2xl bg-night-800' />
+      <div className='mx-auto mt-10 aspect-square w-full max-w-xs rounded-full bg-night-800' />
       <span className='sr-only'>{t('loading')}</span>
     </div>
   )

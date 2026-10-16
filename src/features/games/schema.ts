@@ -57,6 +57,8 @@ export const questions = pgTable(
       .notNull()
       .references(() => categories.id, { onDelete: 'cascade' }),
     text: text('text').notNull(),
+    /** Optional picture shown with the question ("¿Quién es?"). */
+    imageUrl: text('image_url'),
     options: jsonb('options')
       .$type<[string, string, string, string]>()
       .notNull(),

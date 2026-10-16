@@ -3,8 +3,8 @@
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { CategoryAvatar } from '@/components/category-avatar'
-import { Button } from '@/components/ui/button'
-import { CROWN_COLOR, CROWN_IMAGE } from '@/features/match/wheel'
+import { buttonClass } from '@/components/ui/button'
+import { CROWN_IMAGE } from '@/features/match/wheel'
 import { categoryById } from './category'
 import { randomSeed } from './random'
 import type { PhaseOf, ScreenProps } from './types'
@@ -20,56 +20,61 @@ export function RevealScreen({
     segment.kind === 'category'
       ? categoryById(state, segment.categoryId)
       : undefined
+  const next = () => dispatch({ type: 'CONTINUE', seed: randomSeed() })
 
   return (
-    <div className='flex flex-1 flex-col items-center gap-6 text-center'>
-      <div className='flex flex-1 animate-pop flex-col items-center justify-center gap-5'>
+    <div className='flex flex-1 flex-col gap-6 text-center'>
+      {/* The one loud moment: the result floods the screen from the pointer. */}
+      <div
+        aria-hidden
+        className='fixed inset-0 animate-flood'
+        style={{
+          background: category
+            ? category.color
+            : 'radial-gradient(circle at 50% 38%, #3a3220 0%, var(--color-night) 62%)',
+        }}
+      />
+      <div className='relative flex flex-1 animate-pop flex-col items-center justify-center gap-6'>
         {category ? (
           <>
             <CategoryAvatar
               name={category.name}
               color={category.color}
               imageUrl={category.imageUrl}
-              size={200}
-              className='shadow-xl ring-8'
+              size={208}
+              className='shadow-[0_0_0_8px_rgba(255,255,255,0.25)]'
             />
-            <h2
-              className='rounded-2xl px-6 py-3 text-3xl font-extrabold text-white shadow-md'
-              style={{ backgroundColor: category.color }}
-            >
+            <h2 className='font-display text-4xl font-bold text-white'>
               {t('category', { name: category.name })}
             </h2>
           </>
         ) : (
           <>
-            <span
-              className='flex size-[200px] items-center justify-center rounded-full shadow-xl ring-8 ring-white'
-              style={{ backgroundColor: CROWN_COLOR }}
-            >
-              <Image
-                src={CROWN_IMAGE}
-                alt=''
-                width={130}
-                height={130}
-                priority
-              />
-            </span>
-            <h2
-              className='rounded-2xl px-6 py-3 text-3xl font-extrabold text-white shadow-md'
-              style={{ backgroundColor: CROWN_COLOR }}
-            >
+            <Image
+              src={CROWN_IMAGE}
+              alt=''
+              width={176}
+              height={176}
+              priority
+              className='drop-shadow-[0_8px_24px_rgba(242,169,59,0.45)]'
+            />
+            <h2 className='font-display text-4xl font-bold text-amber'>
               {t('crown')}
             </h2>
-            <p className='text-zinc-600'>{t('crownHint')}</p>
+            <p className='max-w-xs text-chalk/80'>{t('crownHint')}</p>
           </>
         )}
       </div>
-      <Button
-        className='w-full text-lg'
-        onClick={() => dispatch({ type: 'CONTINUE', seed: randomSeed() })}
+      <button
+        type='button'
+        onClick={next}
+        className={buttonClass(
+          category ? 'ink' : 'primary',
+          'relative w-full text-lg lg:max-w-sm lg:self-center',
+        )}
       >
         {t('continue')}
-      </Button>
+      </button>
     </div>
   )
 }

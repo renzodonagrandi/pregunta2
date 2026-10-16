@@ -2,13 +2,18 @@
 
 import { updateTag } from 'next/cache'
 import { z } from 'zod'
-import { deleteImageQuietly, isCategoryImageUrl } from '@/features/games/images'
+import {
+  deleteImagesQuietly,
+  isCategoryImageUrl,
+  isQuestionImageUrl,
+} from '@/features/games/images'
 import {
   addCategory,
   afterEdit,
   createQuestion,
   deleteCategory,
   deleteQuestion,
+  isQuestionImageInUse,
   EditFailure,
   publishGame,
   setCategoryImage,
@@ -102,15 +107,23 @@ export async function setCategoryImageAction(
       throw new EditFailure('INVALID_IMAGE')
     }
     const previous = await setCategoryImage(id, catId, url)
-    if (previous && previous !== url) await deleteImageQuietly(previous)
+    if (previous && previous !== url) await deleteImagesQuietly([previous])
   })
 }
 
 export async function deleteCategoryAction(token: string, categoryId: string) {
   return edit(token, async id => {
-    const image = await deleteCategory(id, idSchema.parse(categoryId))
-    await deleteImageQuietly(image)
+    const images = await deleteCategory(id, idSchema.parse(categoryId))
+    await deleteImagesQuietly(images)
   })
+}
+
+function parseQuestion(gameId: string, input: unknown) {
+  const question = questionInputSchema.parse(input)
+  if (question.imageUrl && !isQuestionImageUrl(question.imageUrl, gameId)) {
+    throw new EditFailure('INVALID_IMAGE')
+  }
+  return question
 }
 
 export async function createQuestionAction(
@@ -119,11 +132,7 @@ export async function createQuestionAction(
   input: unknown,
 ) {
   return edit(token, id =>
-    createQuestion(
-      id,
-      idSchema.parse(categoryId),
-      questionInputSchema.parse(input),
-    ),
+    createQuestion(id, idSchema.parse(categoryId), parseQuestion(id, input)),
   )
 }
 
@@ -132,17 +141,36 @@ export async function updateQuestionAction(
   questionId: string,
   input: unknown,
 ) {
-  return edit(token, id =>
-    updateQuestion(
+  return edit(token, async id => {
+    const question = parseQuestion(id, input)
+    const previous = await updateQuestion(
       id,
       idSchema.parse(questionId),
-      questionInputSchema.parse(input),
-    ),
-  )
+      question,
+    )
+    if (previous && previous !== question.imageUrl) {
+      await deleteImagesQuietly([previous])
+    }
+  })
 }
 
 export async function deleteQuestionAction(token: string, questionId: string) {
-  return edit(token, id => deleteQuestion(id, idSchema.parse(questionId)))
+  return edit(token, async id => {
+    const image = await deleteQuestion(id, idSchema.parse(questionId))
+    await deleteImagesQuietly([image])
+  })
+}
+
+/**
+ * Removes an image uploaded in the question form that ended up unused
+ * (form cancelled, or replaced before saving). Images still referenced by a
+ * question are never deleted.
+ */
+export async function discardQuestionImageAction(token: string, url: string) {
+  return edit(token, async id => {
+    if (!isQuestionImageUrl(url, id)) throw new EditFailure('INVALID_IMAGE')
+    if (!(await isQuestionImageInUse(url))) await deleteImagesQuietly([url])
+  })
 }
 
 export type PublishActionResult =

@@ -1,6 +1,5 @@
 'use client'
 
-import { upload } from '@vercel/blob/client'
 import { useTranslations } from 'next-intl'
 import { useRef, useState, type ChangeEvent } from 'react'
 import { CategoryAvatar } from '@/components/category-avatar'
@@ -13,6 +12,7 @@ import {
 import { CATEGORY_COLORS } from '@/features/games/palette'
 import { categoryImagePathname } from '@/features/games/schemas'
 import type { EditorCategory } from '@/features/games/types'
+import { compressAndUpload } from '@/features/games/upload-image'
 import {
   deleteCategoryAction,
   setCategoryImageAction,
@@ -58,27 +58,12 @@ export function CategoryCard({
     setUploadError(false)
     setUploading(true)
     try {
-      // Loaded on demand: only editors who upload pay for the library.
-      const { default: imageCompression } =
-        await import('browser-image-compression')
-      const compressed = await imageCompression(file, {
-        maxWidthOrHeight: IMAGE_MAX_SIDE,
-        maxSizeMB: 0.3,
-        fileType: 'image/webp',
-        initialQuality: 0.85,
-        useWebWorker: true,
+      const url = await compressAndUpload(file, {
+        pathname: categoryImagePathname(game.id, category.id),
+        maxSide: IMAGE_MAX_SIDE,
+        payload: { kind: 'category', token, categoryId: category.id },
       })
-      const blob = await upload(
-        categoryImagePathname(game.id, category.id),
-        compressed,
-        {
-          access: 'public',
-          handleUploadUrl: '/api/blob/upload',
-          clientPayload: JSON.stringify({ token, categoryId: category.id }),
-          contentType: 'image/webp',
-        },
-      )
-      await run(() => setCategoryImageAction(token, category.id, blob.url))
+      await run(() => setCategoryImageAction(token, category.id, url))
     } catch {
       setUploadError(true)
     } finally {
@@ -87,7 +72,10 @@ export function CategoryCard({
   }
 
   return (
-    <article className='flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-sm'>
+    <article
+      className='flex flex-col gap-4 rounded-2xl border-2 border-chalk-200 bg-white p-4'
+      style={{ borderTopColor: category.color, borderTopWidth: 6 }}
+    >
       <div className='flex items-center gap-3'>
         <CategoryAvatar
           name={displayName}
@@ -96,7 +84,7 @@ export function CategoryCard({
           size={56}
         />
         <label className='flex min-w-0 flex-1 flex-col gap-1'>
-          <span className='text-xs font-semibold text-zinc-600'>
+          <span className='font-display text-xs font-semibold text-night/70'>
             {t('name')}
           </span>
           <input
@@ -110,13 +98,13 @@ export function CategoryCard({
             onBlur={() => {
               if (name.trim() !== category.name) void save({ name })
             }}
-            className='min-h-11 rounded-xl border border-zinc-300 px-3 outline-none focus:border-zinc-900'
+            className='min-h-11 rounded-xl border-2 border-chalk-300 px-3 font-display text-lg font-semibold outline-none placeholder:font-sans placeholder:font-normal placeholder:text-night/35 focus:border-night'
           />
         </label>
       </div>
 
       <fieldset>
-        <legend className='mb-2 text-xs font-semibold text-zinc-600'>
+        <legend className='mb-2 font-display text-xs font-semibold text-night/70'>
           {t('color')}
         </legend>
         <div className='flex flex-wrap gap-2'>
@@ -136,7 +124,7 @@ export function CategoryCard({
                 }
                 title={taken ? t('colorTaken', { color }) : color}
                 onClick={() => !selected && void save({ color })}
-                className={`relative size-9 rounded-full transition-transform disabled:cursor-not-allowed disabled:opacity-25 ${selected ? 'scale-110 ring-4 ring-zinc-900/30 ring-offset-2' : 'hover:scale-105'}`}
+                className={`relative size-9 rounded-full transition-transform disabled:cursor-not-allowed disabled:opacity-25 ${selected ? 'scale-110 ring-3 ring-night ring-offset-2' : 'hover:scale-105'}`}
                 style={{ backgroundColor: color }}
               >
                 {taken && (
@@ -156,7 +144,7 @@ export function CategoryCard({
       </fieldset>
 
       <div className='flex flex-col gap-2'>
-        <span className='text-xs font-semibold text-zinc-600'>
+        <span className='font-display text-xs font-semibold text-night/70'>
           {t('image')}
         </span>
         <div className='flex flex-wrap items-center gap-2'>
@@ -168,7 +156,7 @@ export function CategoryCard({
             onChange={e => void onFile(e)}
           />
           <Button
-            variant='secondary'
+            variant='outline'
             className='min-h-11 text-sm'
             disabled={uploading}
             onClick={() => fileInput.current?.click()}
@@ -192,16 +180,16 @@ export function CategoryCard({
           )}
         </div>
         {!category.imageUrl && (
-          <p className='text-xs text-zinc-500'>{t('noImageHint')}</p>
+          <p className='text-xs text-night/60'>{t('noImageHint')}</p>
         )}
         {uploadError && (
-          <p className='text-sm text-red-700' role='alert'>
+          <p className='text-sm text-[#a3262c]' role='alert'>
             {tErrors('UPLOAD_FAILED')}
           </p>
         )}
       </div>
 
-      <div className='flex justify-end border-t border-zinc-100 pt-3'>
+      <div className='flex justify-end border-t border-chalk-200 pt-3'>
         {confirmingDelete ? (
           <div className='flex flex-wrap items-center justify-end gap-2'>
             <span className='text-sm'>
@@ -227,7 +215,7 @@ export function CategoryCard({
         ) : (
           <Button
             variant='ghost'
-            className='min-h-10 px-3 text-sm text-red-700'
+            className='min-h-10 px-3 text-sm text-[#a3262c]'
             disabled={game.categories.length <= MIN_CATEGORIES}
             title={
               game.categories.length <= MIN_CATEGORIES

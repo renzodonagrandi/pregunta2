@@ -64,22 +64,28 @@ export function PublishStep() {
 
   if (game.published) {
     return (
-      <section className='flex flex-col gap-5'>
-        <div className='rounded-2xl bg-emerald-50 p-4 text-emerald-900'>
-          <h2 className='text-xl font-bold'>{t('publish.publishedTitle')}</h2>
+      <section className='flex max-w-2xl flex-col gap-5'>
+        <div className='rounded-2xl border-l-4 border-ok bg-ok/12 p-4'>
+          <h2 className='font-display text-xl font-bold'>
+            {t('publish.publishedTitle')}
+          </h2>
           <p className='text-sm'>{t('publish.publishedHint')}</p>
         </div>
-        <div className='flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-sm'>
-          <h3 className='font-semibold'>{t('publish.publicLink')}</h3>
-          <p className='text-sm text-zinc-600'>{t('publish.publicHint')}</p>
+        <div className='flex flex-col gap-2 rounded-2xl border-2 border-chalk-200 bg-white p-4'>
+          <h3 className='font-display font-semibold'>
+            {t('publish.publicLink')}
+          </h3>
+          <p className='text-sm text-night/70'>{t('publish.publicHint')}</p>
           <CopyField value={playLink} label={t('publish.publicLink')} />
           <a href={playLink} className={buttonClass('primary', 'mt-2 w-full')}>
             {t('publish.play')}
           </a>
         </div>
-        <div className='flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-red-200'>
-          <h3 className='font-semibold'>🔒 {t('publish.editLink')}</h3>
-          <p className='text-sm font-medium text-red-800'>
+        <div className='flex flex-col gap-2 rounded-2xl border-2 border-bad/40 bg-white p-4'>
+          <h3 className='font-display font-semibold'>
+            {t('publish.editLink')}
+          </h3>
+          <p className='text-sm font-medium text-[#8f1f24]'>
             {t('publish.editWarning')}
           </p>
           <CopyField value={editLink} label={t('publish.editLink')} />
@@ -89,14 +95,14 @@ export function PublishStep() {
   }
 
   return (
-    <section className='flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-sm'>
-      <h2 className='text-xl font-bold'>{t('publish.heading')}</h2>
+    <section className='flex max-w-2xl flex-col gap-4 rounded-2xl border-2 border-chalk-200 bg-white p-5'>
+      <h2 className='font-display text-xl font-bold'>{t('publish.heading')}</h2>
       {issues.length === 0 ? (
-        <p className='font-medium text-emerald-700'>{t('publish.ready')}</p>
+        <p className='font-medium text-[#1b6b48]'>{t('publish.ready')}</p>
       ) : (
         <div>
           <p className='font-medium'>{t('publish.missing')}</p>
-          <ul className='mt-2 flex list-disc flex-col gap-1 pl-5 text-sm text-zinc-700'>
+          <ul className='mt-2 flex list-disc flex-col gap-1 pl-5 text-sm text-night/80'>
             {issues.map((issue, i) => (
               <li key={i}>{issueText(issue)}</li>
             ))}
@@ -104,7 +110,7 @@ export function PublishStep() {
         </div>
       )}
       {notReady && (
-        <p className='text-sm text-red-700' role='alert'>
+        <p className='text-sm text-[#a3262c]' role='alert'>
           {t('errors.NOT_READY')}
         </p>
       )}

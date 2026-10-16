@@ -46,6 +46,7 @@ async function loadCategoriesWithQuestions(
       .map(q => ({
         id: q.id,
         text: q.text,
+        imageUrl: q.imageUrl,
         options: q.options,
         correctIndex: q.correctIndex,
       })),

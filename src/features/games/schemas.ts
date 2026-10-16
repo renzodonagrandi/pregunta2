@@ -29,6 +29,8 @@ const optionSchema = z.string().trim().min(1).max(MAX_OPTION_LENGTH)
 export const questionInputSchema = z
   .object({
     text: z.string().trim().min(1).max(MAX_QUESTION_LENGTH),
+    // Checked against the game's Blob prefix by the server action.
+    imageUrl: z.url().nullable().default(null),
     options: z.tuple([optionSchema, optionSchema, optionSchema, optionSchema]),
     correctIndex: z.number().int().min(0).max(3),
   })
@@ -41,12 +43,26 @@ export type GameMetaInput = z.infer<typeof gameMetaSchema>
 export type CategoryUpdateInput = z.infer<typeof categoryUpdateSchema>
 export type QuestionInput = z.infer<typeof questionInputSchema>
 
-export const uploadPayloadSchema = z.object({
-  token: editTokenSchema,
-  categoryId: idSchema,
-})
+export const uploadPayloadSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('category'),
+    token: editTokenSchema,
+    categoryId: idSchema,
+  }),
+  z.object({ kind: z.literal('question'), token: editTokenSchema }),
+])
+
+export type UploadPayload = z.infer<typeof uploadPayloadSchema>
 
 /** Blob pathname for a category image; the server only signs this exact path. */
 export function categoryImagePathname(gameId: string, categoryId: string) {
   return `categories/${gameId}/${categoryId}.webp`
+}
+
+/**
+ * Blob pathname for a question image. New questions have no id yet, so the
+ * path is per game; Blob's random suffix makes every upload unique.
+ */
+export function questionImagePathname(gameId: string) {
+  return `questions/${gameId}/image.webp`
 }

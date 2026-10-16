@@ -9,4 +9,6 @@ export const MAX_OPTION_LENGTH = 80
 
 export const MAX_IMAGE_BYTES = 1_000_000
 export const IMAGE_MAX_SIDE = 512
+/** Question pictures need more detail than a category avatar. */
+export const QUESTION_IMAGE_MAX_SIDE = 1024
 export const ALLOWED_IMAGE_TYPES = ['image/webp', 'image/jpeg', 'image/png']

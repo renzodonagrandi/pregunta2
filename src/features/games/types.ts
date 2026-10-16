@@ -20,6 +20,7 @@ export interface GameSummary {
 export interface EditorQuestion {
   id: string
   text: string
+  imageUrl: string | null
   options: [string, string, string, string]
   correctIndex: number
 }

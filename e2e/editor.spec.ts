@@ -17,7 +17,11 @@ test.afterAll(async () => {
   for (const title of createdTitles) {
     const images = (await sql`
       select c.image_url from categories c join games g on g.id = c.game_id
-      where g.title = ${title} and c.image_url is not null`) as {
+      where g.title = ${title} and c.image_url is not null
+      union all
+      select q.image_url from questions q
+      join categories c on c.id = q.category_id join games g on g.id = c.game_id
+      where g.title = ${title} and q.image_url is not null`) as {
       image_url: string
     }[]
     if (images.length > 0) {
@@ -36,8 +40,13 @@ async function waitSaved(page: Page) {
   ).toBeVisible()
 }
 
-async function addQuestion(page: Page, text: string, correct: number) {
-  await page.getByRole('button', { name: `+ ${e.questions.add}` }).click()
+async function addQuestion(
+  page: Page,
+  text: string,
+  correct: number,
+  image?: string,
+) {
+  await page.getByRole('button', { name: e.questions.add, exact: true }).click()
   const form = page
     .locator('form')
     .filter({ has: page.getByPlaceholder(e.questions.textPlaceholder) })
@@ -48,6 +57,14 @@ async function addQuestion(page: Page, text: string, correct: number) {
       .fill(`${text} opción ${i + 1}`)
   }
   await form.getByLabel(`Marcar la opción ${correct + 1} como correcta`).check()
+  if (image) {
+    await form.locator('input[type=file]').setInputFiles(image)
+    await expect(
+      form.getByRole('img', { name: e.questions.imageAlt }),
+    ).toBeVisible({
+      timeout: 30_000,
+    })
+  }
   await form.getByRole('button', { name: e.questions.save }).click()
   await expect(
     page.getByText(`Correcta: ${text} opción ${correct + 1}`),
@@ -93,10 +110,10 @@ test('create, edit, upload an image, publish and play a game', async ({
 
   // Colors used by other categories are disabled.
   await expect(
-    card(page, 0).getByRole('button', { name: /ya lo usa otro macaco/ }),
+    card(page, 0).getByRole('button', { name: /ya lo usa otra categoría/ }),
   ).toHaveCount(2)
   for (const b of await card(page, 0)
-    .getByRole('button', { name: /ya lo usa otro macaco/ })
+    .getByRole('button', { name: /ya lo usa otra categoría/ })
     .all()) {
     await expect(b).toBeDisabled()
   }
@@ -106,7 +123,7 @@ test('create, edit, upload an image, publish and play a game', async ({
   await waitSaved(page)
   await expect(
     card(page, 0).getByRole('button', {
-      name: '#6A1B9A: ya lo usa otro macaco',
+      name: '#6A1B9A: ya lo usa otra categoría',
     }),
   ).toBeDisabled()
 
@@ -142,8 +159,15 @@ test('create, edit, upload an image, publish and play a game', async ({
   await page.getByRole('tab', { name: e.tabs.questions }).click()
   for (const name of CATEGORY_NAMES) {
     await page.getByRole('tab', { name: new RegExp(name) }).click()
-    for (let q = 0; q < 5; q++)
-      await addQuestion(page, `${name} ${q + 1}`, q % 4)
+    for (let q = 0; q < 5; q++) {
+      const withImage = name === 'Historia' && q === 0
+      await addQuestion(
+        page,
+        `${name} ${q + 1}`,
+        q % 4,
+        withImage ? 'e2e/fixtures/category.png' : undefined,
+      )
+    }
     await expect(
       page.getByRole('tab', { name: new RegExp(`${name}.*5/5`) }),
     ).toBeVisible()
@@ -192,6 +216,38 @@ test('create, edit, upload an image, publish and play a game', async ({
     page.getByRole('img', { name: 'Ruleta con 4 porciones' }),
   ).toBeVisible()
   await expect(page.locator('main img, section img').first()).toBeVisible()
+
+  // The question picture shows up in the match: jump to that question.
+  await page.evaluate(() => {
+    const key = Object.keys(localStorage).find(k =>
+      k.startsWith('pregunta2:match:'),
+    )
+    const state = JSON.parse(localStorage.getItem(key ?? '') ?? '{}')
+    const q = state.game.questions.find(
+      (x: { imageUrl?: string | null }) => x.imageUrl,
+    )
+    state.phase = {
+      name: 'QUESTION',
+      context: { kind: 'spin' },
+      question: {
+        questionId: q.id,
+        categoryId: q.categoryId,
+        optionOrder: [0, 1, 2, 3],
+        answer: null,
+      },
+    }
+    localStorage.setItem(key ?? '', JSON.stringify(state))
+  })
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Historia 1' })).toBeVisible()
+  const questionImage = page.getByRole('img', {
+    name: es.Match.question.imageAlt,
+  })
+  await expect(questionImage).toBeVisible()
+  expect(
+    await questionImage.evaluate(img => (img as HTMLImageElement).naturalWidth),
+  ).toBeGreaterThan(0)
+  await page.screenshot({ path: 'test-results/screens/13-question-image.png' })
 
   // Breaking the requirements of a published game sends it back to draft.
   await page.goto(`${editUrl.split('?')[0]}?tab=questions`)
