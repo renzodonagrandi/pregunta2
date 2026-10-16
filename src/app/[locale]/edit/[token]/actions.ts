@@ -3,6 +3,7 @@
 import { updateTag } from 'next/cache'
 import { after } from 'next/server'
 import { z } from 'zod'
+import { $ZodError } from 'zod/v4/core'
 import {
   deleteImagesQuietly,
   isCategoryImageUrl,
@@ -59,8 +60,8 @@ async function edit(
     await run(row.id)
   } catch (error) {
     if (error instanceof EditFailure) return { ok: false, error: error.code }
-    if (error instanceof z.ZodError)
-      return { ok: false, error: 'INVALID_INPUT' }
+    // Base class of both classic and zod/mini errors (schemas use zod/mini).
+    if (error instanceof $ZodError) return { ok: false, error: 'INVALID_INPUT' }
     throw error
   }
   const game = await afterEdit(row.id)

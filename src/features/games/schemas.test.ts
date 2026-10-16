@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { $ZodError } from 'zod/v4/core'
 import { editTokenSchema, questionInputSchema } from './schemas'
 
 describe('question input', () => {
@@ -36,5 +37,20 @@ describe('edit token', () => {
     expect(editTokenSchema.safeParse('a'.repeat(43)).success).toBe(true)
     expect(editTokenSchema.safeParse('a'.repeat(42)).success).toBe(false)
     expect(editTokenSchema.safeParse(`${'a'.repeat(42)}.`).success).toBe(false)
+  })
+})
+
+describe('schema errors', () => {
+  it('throw $ZodError, which server actions map to INVALID_INPUT', () => {
+    expect(() => questionInputSchema.parse({})).toThrow($ZodError)
+  })
+
+  it('defaults a missing image to null', () => {
+    const parsed = questionInputSchema.parse({
+      text: 'q',
+      options: ['a', 'b', 'c', 'd'],
+      correctIndex: 0,
+    })
+    expect(parsed.imageUrl).toBeNull()
   })
 })
