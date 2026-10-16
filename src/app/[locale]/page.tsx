@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages, getTranslations } from 'next-intl/server'
 import { Suspense } from 'react'
 import { Logo } from '@/components/brand/logo'
 import { createGameAction } from './actions'
@@ -9,9 +10,10 @@ import {
 } from './_components/published-games'
 
 export default async function HomePage() {
-  const [t, tc] = await Promise.all([
+  const [t, tc, { Home }] = await Promise.all([
     getTranslations('Home'),
     getTranslations('Common'),
+    getMessages(),
   ])
 
   return (
@@ -24,7 +26,9 @@ export default async function HomePage() {
           {t('subtitle', { categories: tc('categories') })}
         </p>
         <form action={createGameAction} className='w-full sm:w-auto'>
-          <CreateGameButton />
+          <NextIntlClientProvider messages={{ Home }}>
+            <CreateGameButton />
+          </NextIntlClientProvider>
         </form>
         <p className='max-w-sm text-sm leading-relaxed text-mist'>
           {t('createHint')}

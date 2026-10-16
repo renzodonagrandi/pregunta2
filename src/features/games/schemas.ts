@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod/mini'
 import {
   MAX_CATEGORY_NAME_LENGTH,
   MAX_OPTION_LENGTH,
@@ -7,37 +7,45 @@ import {
 } from './constants'
 import { CATEGORY_COLORS } from './palette'
 
-// Shared by editor forms (client) and server actions (server).
+// Shared by editor forms (client) and server actions (server). Uses zod/mini:
+// same validation as classic Zod, but tree-shakable, so the editor bundle
+// only carries the checks used here.
 
 export const editTokenSchema = z
   .string()
-  .regex(/^[A-Za-z0-9_-]{43}$/, 'INVALID_TOKEN')
+  .check(z.regex(/^[A-Za-z0-9_-]{43}$/, 'INVALID_TOKEN'))
 
 export const idSchema = z.uuid()
 
 export const gameMetaSchema = z.object({
-  title: z.string().trim().max(MAX_TITLE_LENGTH),
+  title: z.string().check(z.trim(), z.maxLength(MAX_TITLE_LENGTH)),
 })
 
 export const categoryUpdateSchema = z.object({
-  name: z.string().trim().max(MAX_CATEGORY_NAME_LENGTH),
+  name: z.string().check(z.trim(), z.maxLength(MAX_CATEGORY_NAME_LENGTH)),
   color: z.enum(CATEGORY_COLORS),
 })
 
-const optionSchema = z.string().trim().min(1).max(MAX_OPTION_LENGTH)
+const optionSchema = z
+  .string()
+  .check(z.trim(), z.minLength(1), z.maxLength(MAX_OPTION_LENGTH))
 
 export const questionInputSchema = z
   .object({
-    text: z.string().trim().min(1).max(MAX_QUESTION_LENGTH),
+    text: z
+      .string()
+      .check(z.trim(), z.minLength(1), z.maxLength(MAX_QUESTION_LENGTH)),
     // Checked against the game's Blob prefix by the server action.
-    imageUrl: z.url().nullable().default(null),
+    imageUrl: z._default(z.nullable(z.url()), null),
     options: z.tuple([optionSchema, optionSchema, optionSchema, optionSchema]),
-    correctIndex: z.number().int().min(0).max(3),
+    correctIndex: z.int().check(z.minimum(0), z.maximum(3)),
   })
-  .refine(q => new Set(q.options.map(o => o.toLocaleLowerCase())).size === 4, {
-    message: 'DUPLICATE_OPTIONS',
-    path: ['options'],
-  })
+  .check(
+    z.refine(
+      q => new Set(q.options.map(o => o.toLocaleLowerCase())).size === 4,
+      { message: 'DUPLICATE_OPTIONS', path: ['options'] },
+    ),
+  )
 
 export type GameMetaInput = z.infer<typeof gameMetaSchema>
 export type CategoryUpdateInput = z.infer<typeof categoryUpdateSchema>

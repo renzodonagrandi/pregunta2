@@ -29,6 +29,7 @@ export function SetupPlayersScreen({
 
   return (
     <form
+      method='post'
       onSubmit={onSubmit}
       className='flex flex-1 flex-col gap-6 pt-8'
       noValidate

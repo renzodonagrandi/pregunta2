@@ -1,5 +1,5 @@
 import 'server-only'
-import { and, asc, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, type SQL } from 'drizzle-orm'
 import { cacheLife, cacheTag } from 'next/cache'
 import { getDb } from '@/lib/db'
 import { categories, games, questions } from './schema'
@@ -16,41 +16,57 @@ export const gameTag = (gameId: string) => `game:${gameId}`
 
 type GameRow = typeof games.$inferSelect
 
-async function loadCategoriesWithQuestions(
-  gameId: string,
-): Promise<EditorCategory[]> {
+/**
+ * Loads one game (matched by `where`, a unique condition on `games`) with its
+ * categories and questions. The three queries go to Neon in a single batch
+ * (one HTTP round trip) instead of waiting on each other.
+ */
+async function loadGame(
+  where: SQL,
+): Promise<{ row: GameRow; categories: EditorCategory[] } | null> {
   const db = getDb()
-  const cats = await db
-    .select()
-    .from(categories)
-    .where(eq(categories.gameId, gameId))
-    .orderBy(asc(categories.sortOrder))
-  if (cats.length === 0) return []
-  const qs = await db
-    .select()
-    .from(questions)
-    .where(
-      inArray(
-        questions.categoryId,
-        cats.map(c => c.id),
-      ),
-    )
-    .orderBy(asc(questions.createdAt), asc(questions.id))
-  return cats.map(c => ({
-    id: c.id,
-    name: c.name,
-    color: c.color,
-    imageUrl: c.imageUrl,
-    questions: qs
-      .filter(q => q.categoryId === c.id)
-      .map(q => ({
-        id: q.id,
-        text: q.text,
-        imageUrl: q.imageUrl,
-        options: q.options,
-        correctIndex: q.correctIndex,
-      })),
-  }))
+  const gameIds = db.select({ id: games.id }).from(games).where(where)
+  const [rows, cats, qs] = await db.batch([
+    db.select().from(games).where(where).limit(1),
+    db
+      .select()
+      .from(categories)
+      .where(inArray(categories.gameId, gameIds))
+      .orderBy(asc(categories.sortOrder)),
+    db
+      .select({
+        id: questions.id,
+        categoryId: questions.categoryId,
+        text: questions.text,
+        imageUrl: questions.imageUrl,
+        options: questions.options,
+        correctIndex: questions.correctIndex,
+      })
+      .from(questions)
+      .innerJoin(categories, eq(questions.categoryId, categories.id))
+      .where(inArray(categories.gameId, gameIds))
+      .orderBy(asc(questions.createdAt), asc(questions.id)),
+  ])
+  const [row] = rows
+  if (!row) return null
+  return {
+    row,
+    categories: cats.map(c => ({
+      id: c.id,
+      name: c.name,
+      color: c.color,
+      imageUrl: c.imageUrl,
+      questions: qs
+        .filter(q => q.categoryId === c.id)
+        .map(q => ({
+          id: q.id,
+          text: q.text,
+          imageUrl: q.imageUrl,
+          options: q.options,
+          correctIndex: q.correctIndex,
+        })),
+    })),
+  }
 }
 
 function toEditorGame(row: GameRow, cats: EditorCategory[]): EditorGame {
@@ -71,15 +87,13 @@ export async function getPlayableGame(
   cacheLife('max')
   cacheTag(`game-slug:${slug}`)
 
-  const [row] = await getDb()
-    .select()
-    .from(games)
-    .where(and(eq(games.slug, slug), eq(games.published, true)))
-    .limit(1)
-  if (!row) return null
+  const game = await loadGame(
+    and(eq(games.slug, slug), eq(games.published, true)) as SQL,
+  )
+  if (!game) return null
+  const { row, categories: cats } = game
   cacheTag(gameTag(row.id))
 
-  const cats = await loadCategoriesWithQuestions(row.id)
   return {
     id: row.id,
     slug: row.slug,
@@ -103,23 +117,31 @@ export async function listPublishedGames(): Promise<GameSummary[]> {
   cacheTag(PUBLISHED_GAMES_TAG)
 
   const db = getDb()
-  const rows = await db
-    .select()
+  const newest = db
+    .select({ id: games.id })
     .from(games)
     .where(eq(games.published, true))
     .orderBy(desc(games.updatedAt))
     .limit(60)
-  if (rows.length === 0) return []
-  const cats = await db
-    .select()
-    .from(categories)
-    .where(
-      inArray(
-        categories.gameId,
-        rows.map(r => r.id),
-      ),
-    )
-    .orderBy(asc(categories.sortOrder))
+  // Both queries in one round trip; categories are filtered by the same subquery.
+  const [rows, cats] = await db.batch([
+    db
+      .select({ id: games.id, slug: games.slug, title: games.title })
+      .from(games)
+      .where(inArray(games.id, newest))
+      .orderBy(desc(games.updatedAt)),
+    db
+      .select({
+        id: categories.id,
+        gameId: categories.gameId,
+        name: categories.name,
+        color: categories.color,
+        imageUrl: categories.imageUrl,
+      })
+      .from(categories)
+      .where(inArray(categories.gameId, newest))
+      .orderBy(asc(categories.sortOrder)),
+  ])
   return rows.map(r => ({
     slug: r.slug,
     title: r.title,
@@ -142,19 +164,13 @@ export async function findGameByToken(token: string): Promise<GameRow | null> {
 export async function getEditorGame(
   gameId: string,
 ): Promise<EditorGame | null> {
-  const [row] = await getDb()
-    .select()
-    .from(games)
-    .where(eq(games.id, gameId))
-    .limit(1)
-  if (!row) return null
-  return toEditorGame(row, await loadCategoriesWithQuestions(row.id))
+  const game = await loadGame(eq(games.id, gameId))
+  return game ? toEditorGame(game.row, game.categories) : null
 }
 
 export async function getEditorGameByToken(
   token: string,
 ): Promise<EditorGame | null> {
-  const row = await findGameByToken(token)
-  if (!row) return null
-  return toEditorGame(row, await loadCategoriesWithQuestions(row.id))
+  const game = await loadGame(eq(games.editTokenHash, hashEditToken(token)))
+  return game ? toEditorGame(game.row, game.categories) : null
 }
