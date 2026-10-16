@@ -217,3 +217,32 @@ test('duel: steal a category by answering both questions', async ({ page }) => {
   expect(saved.players[0].categories).toHaveLength(2)
   expect(saved.players[1].categories).toHaveLength(0)
 })
+
+test('back button returns to the previous page, or home from a fresh tab', async ({
+  page,
+}) => {
+  const back = () =>
+    page.getByRole('button', { name: es.Common.back, exact: true }).click()
+
+  // From the home list into a game, then back.
+  await page.goto('/')
+  await page.getByRole('link', { name: 'Jugar Trivia de prueba' }).click()
+  await expect(page.getByRole('heading', { name: m.setup.title })).toBeVisible()
+  await back()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(
+    page.getByRole('heading', { name: es.Home.published }),
+  ).toBeVisible()
+
+  // Opened directly (no previous page of the site): goes home, never off-site.
+  const fresh = await page.context().newPage()
+  await fresh.goto('/j/demo')
+  await fresh.getByRole('button', { name: es.Common.back, exact: true }).click()
+  await expect(fresh).toHaveURL(/\/$/)
+
+  // The not-found page has it too.
+  await page.goto('/no-existe')
+  await expect(
+    page.getByRole('button', { name: es.Common.back, exact: true }),
+  ).toBeVisible()
+})

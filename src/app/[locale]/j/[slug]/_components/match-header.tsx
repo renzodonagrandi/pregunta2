@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
+import { BackButton } from '@/components/back-button'
 import { Mark } from '@/components/brand/logo'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/navigation'
@@ -14,6 +15,7 @@ export function MatchHeader({
   onRestart: (() => void) | undefined
 }) {
   const t = useTranslations('Match.header')
+  const tc = useTranslations('Common')
   const [confirming, setConfirming] = useState(false)
 
   if (confirming && onRestart) {
@@ -44,12 +46,13 @@ export function MatchHeader({
   }
 
   return (
-    <header className='relative z-10 flex min-h-11 items-center gap-3'>
+    <header className='relative z-10 flex min-h-11 items-center gap-1'>
+      <BackButton label={tc('back')} className='-ml-2 text-chalk' />
       <Link
         href='/'
         aria-label={t('exit')}
         title={t('exit')}
-        className='-ml-1 flex size-11 shrink-0 items-center justify-center rounded-xl text-chalk hover:bg-night-800'
+        className='mr-2 flex size-11 shrink-0 items-center justify-center rounded-xl text-chalk hover:bg-night-800'
       >
         <Mark className='h-6 w-8' />
       </Link>
