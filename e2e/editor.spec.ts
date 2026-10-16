@@ -92,6 +92,29 @@ test('create, edit, upload an image, publish and play a game', async ({
   await page.getByLabel(e.meta.title).fill(title)
   await page.getByLabel(e.meta.title).blur()
   await waitSaved(page)
+
+  // Leaving the editor warns to keep the edit link; "stay" keeps you here.
+  const back = page.getByRole('button', { name: es.Common.back, exact: true })
+  await back.click()
+  const dialog = page.getByRole('dialog', { name: e.leave.title })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByLabel(e.publish.editLink)).toHaveValue(
+    editUrl.split('?')[0] ?? editUrl,
+  )
+  await page.screenshot({ path: 'test-results/screens/14-leave-dialog.png' })
+  await dialog.getByRole('button', { name: e.leave.stay }).click()
+  await expect(dialog).toBeHidden()
+  await expect(page).toHaveURL(editUrl)
+  // The logo warns too; Esc closes the dialog.
+  await page.getByRole('link', { name: e.home }).click()
+  await expect(dialog).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  // Confirming leaves: back to the home page we came from.
+  await back.click()
+  await dialog.getByRole('button', { name: e.leave.leave }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await page.goto(editUrl)
   await expect(page.locator('article')).toHaveCount(3)
 
   for (const [i, name] of CATEGORY_NAMES.entries()) {

@@ -3,13 +3,15 @@
 import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { BackButton, useGoBack } from '@/components/back-button'
 import { Logo } from '@/components/brand/logo'
 import type { EditorGame } from '@/features/games/types'
-import { Link } from '@/i18n/navigation'
+import { Link, useRouter } from '@/i18n/navigation'
 import type { EditorActionError, EditorActionResult } from '../actions'
 import { CategoriesStep } from './categories-step'
 import { CopyField } from './copy-field'
 import { EditorContext, type SaveStatus } from './editor-context'
+import { LeaveDialog } from './leave-dialog'
 import { PublishStep } from './publish-step'
 import { QuestionsStep } from './questions-step'
 import { useEditLink } from './use-links'
@@ -40,6 +42,17 @@ export function Editor({
   const tabParam = searchParams.get('tab')
   const tab: Tab = isTab(tabParam) ? tabParam : 'categories'
   const editLink = useEditLink(token)
+  // Where the user wants to go once they confirm they saved the edit link.
+  const [leaving, setLeaving] = useState<'back' | 'home' | null>(null)
+  const goBack = useGoBack()
+  const router = useRouter()
+
+  const leave = () => {
+    const target = leaving
+    setLeaving(null)
+    if (target === 'back') goBack()
+    else if (target === 'home') router.push('/')
+  }
 
   // The tab lives in the URL so a reload keeps it.
   const setTab = (next: Tab) => {
@@ -78,13 +91,28 @@ export function Editor({
       <div className='theme-chalk flex w-full flex-1 flex-col bg-chalk text-night'>
         <div className='mx-auto flex w-full max-w-6xl flex-1 flex-col gap-5 px-4 pt-4 pb-12 lg:px-8 lg:pt-6'>
           <header className='flex items-center justify-between gap-3'>
-            <Link
-              href='/'
-              aria-label={t('home')}
-              className='-ml-1 rounded-lg p-1 hover:bg-night/5'
-            >
-              <Logo label={tc('appName')} className='h-6 w-auto' />
-            </Link>
+            <div className='flex items-center gap-1'>
+              <BackButton
+                label={tc('back')}
+                onClick={() => setLeaving('back')}
+                className='-ml-2 text-night'
+              />
+              <Link
+                href='/'
+                aria-label={t('home')}
+                onClick={e => {
+                  // Plain clicks leave the editor: warn first. Modified clicks
+                  // (new tab) keep the editor open, so they go through.
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)
+                    return
+                  e.preventDefault()
+                  setLeaving('home')
+                }}
+                className='rounded-lg p-1 hover:bg-night/5'
+              >
+                <Logo label={tc('appName')} className='h-6 w-auto' />
+              </Link>
+            </div>
             <div className='flex items-center gap-3'>
               <span
                 className='text-sm text-night/60'
@@ -155,6 +183,13 @@ export function Editor({
               ))}
             </div>
           </nav>
+
+          <LeaveDialog
+            open={leaving !== null}
+            editLink={editLink}
+            onStay={() => setLeaving(null)}
+            onLeave={leave}
+          />
 
           <div role='tabpanel'>
             {tab === 'categories' && <CategoriesStep />}

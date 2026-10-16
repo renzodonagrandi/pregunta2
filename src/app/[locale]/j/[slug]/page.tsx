@@ -30,7 +30,7 @@ async function PlayLoader({
   params: PageProps<'/[locale]/j/[slug]'>['params']
 }) {
   const { slug } = await params
-  const [game, { Match: matchMessages }] = await Promise.all([
+  const [game, { Match: matchMessages, Common }] = await Promise.all([
     getPlayableGame(slug),
     getMessages(),
   ])
@@ -43,7 +43,7 @@ async function PlayLoader({
   // bundle. The full game is passed as-is: it's part of the saved match
   // format in localStorage, so trimming fields would discard saved matches.
   return (
-    <NextIntlClientProvider messages={{ Match: clientMatchMessages }}>
+    <NextIntlClientProvider messages={{ Match: clientMatchMessages, Common }}>
       <Match game={game} sidebar={<RulesCard />} />
     </NextIntlClientProvider>
   )

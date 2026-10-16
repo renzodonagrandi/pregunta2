@@ -6,7 +6,8 @@
   "Common": {
     "appName": "Pregunta2",
     "category": "categoría",
-    "categories": "categorías"
+    "categories": "categorías",
+    "back": "Volver"
   },
   "Home": {
     "title": "Pregunta2",
@@ -234,6 +235,12 @@
       "NOT_READY": "Todavía faltan cosas para publicar.",
       "UNKNOWN": "Algo salió mal. Probá de nuevo."
     },
-    "home": "Ir al inicio"
+    "home": "Ir al inicio",
+    "leave": {
+      "title": "Antes de salir, copiá el link de edición",
+      "body": "Es la única forma de volver a editar este juego. Si salís sin guardarlo, no vas a poder retomarlo.",
+      "stay": "Seguir editando",
+      "leave": "Salir"
+    }
   }
 }
