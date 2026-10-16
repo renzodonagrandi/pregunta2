@@ -1,13 +1,19 @@
 'use client'
 
-import { useEffect, useReducer, useState, useSyncExternalStore } from 'react'
+import {
+  useEffect,
+  useReducer,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react'
 import {
   createInitialState,
   gameReducer,
   type GameAction,
+  type GameDefinition,
   type GameState,
 } from '@/features/match/engine'
-import type { PlayableGame } from '@/features/games/types'
 import { clearMatch, loadMatch, saveMatch } from '@/features/match/storage'
 import { ChooseScreen } from './choose-screen'
 import { DuelSetupScreen } from './duel-setup-screen'
@@ -16,7 +22,6 @@ import { MatchHeader } from './match-header'
 import { MatchSkeleton } from './match-skeleton'
 import { QuestionScreen } from './question-screen'
 import { RevealScreen } from './reveal-screen'
-import { RulesCard } from './rules-card'
 import { Scoreboard } from './scoreboard'
 import { SetupPlayersScreen } from './setup-players-screen'
 import { SpinScreen } from './spin-screen'
@@ -28,19 +33,25 @@ const noopSubscribe = () => () => {}
  * Renders the skeleton on the server and during hydration, then the match
  * restored from localStorage (it only exists in the browser).
  */
-export function Match({ game }: { game: PlayableGame }) {
+interface MatchProps {
+  game: GameDefinition
+  /** Server-rendered content for the desktop sidebar, under the scores. */
+  sidebar?: ReactNode
+}
+
+export function Match({ game, sidebar }: MatchProps) {
   const isClient = useSyncExternalStore(
     noopSubscribe,
     () => true,
     () => false,
   )
   if (!isClient) return <MatchSkeleton />
-  return <MatchGame game={game} />
+  return <MatchGame game={game} sidebar={sidebar} />
 }
 
 type MatchAction = GameAction | { type: 'RESET' }
 
-function MatchGame({ game }: { game: PlayableGame }) {
+function MatchGame({ game, sidebar }: MatchProps) {
   const [state, dispatch] = useReducer(
     (s: GameState, a: MatchAction) =>
       a.type === 'RESET' ? createInitialState(game) : gameReducer(s, a),
@@ -75,7 +86,7 @@ function MatchGame({ game }: { game: PlayableGame }) {
       {inGame && (
         <aside className='relative z-10 lg:sticky lg:top-6 lg:self-start'>
           <Scoreboard state={state} />
-          <RulesCard />
+          {sidebar}
         </aside>
       )}
       <main

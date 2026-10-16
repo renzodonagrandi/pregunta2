@@ -17,48 +17,55 @@ export async function PublishedGames() {
 
   // A fixtures board: plain rows, colors only (no image requests on the home).
   return (
-    <ul className='flex flex-col'>
-      {games.map(game => (
-        <li key={game.slug} className='border-b border-night-700'>
-          <Link
-            href={`/j/${game.slug}`}
-            aria-label={t('play', { title: game.title })}
-            className='group -mx-3 flex items-center gap-4 rounded-lg px-3 py-4 transition-colors hover:bg-night-800'
-          >
-            <span className='flex min-w-0 flex-1 flex-col gap-1.5'>
-              <span className='truncate font-display text-lg font-semibold'>
-                {game.title}
-              </span>
-              <span className='flex items-center gap-2 text-sm text-mist'>
-                <span className='flex gap-1' aria-hidden>
-                  {game.categories.map(c => (
-                    <span
-                      key={c.id}
-                      className='size-3 rounded-full'
-                      style={{ backgroundColor: c.color }}
-                    />
-                  ))}
-                </span>
-                {t('categoriesCount', { count: game.categories.length })}
-              </span>
-            </span>
-            <svg
-              viewBox='0 0 24 24'
-              aria-hidden
-              className='size-5 shrink-0 text-mist transition-transform group-hover:translate-x-0.5 group-hover:text-amber'
+    <>
+      {/* Defined once, referenced per row: keeps HTML and RSC payload small. */}
+      <svg className='absolute size-0 overflow-hidden' aria-hidden>
+        <symbol id='row-chevron' viewBox='0 0 24 24'>
+          <path
+            d='M9 5l7 7-7 7'
+            fill='none'
+            stroke='currentColor'
+            strokeWidth='2.5'
+            strokeLinejoin='round'
+          />
+        </symbol>
+      </svg>
+      <ul className='flex flex-col'>
+        {games.map(game => (
+          <li key={game.slug} className='border-b border-night-700'>
+            <Link
+              href={`/j/${game.slug}`}
+              aria-label={t('play', { title: game.title })}
+              className='group -mx-3 flex items-center gap-4 rounded-lg px-3 py-4 transition-colors hover:bg-night-800'
             >
-              <path
-                d='M9 5l7 7-7 7'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2.5'
-                strokeLinejoin='round'
-              />
-            </svg>
-          </Link>
-        </li>
-      ))}
-    </ul>
+              <span className='flex min-w-0 flex-1 flex-col gap-1.5'>
+                <span className='truncate font-display text-lg font-semibold'>
+                  {game.title}
+                </span>
+                <span className='flex items-center gap-2 text-sm text-mist'>
+                  <span className='flex gap-1' aria-hidden>
+                    {game.categories.map(c => (
+                      <span
+                        key={c.id}
+                        className='size-3 rounded-full'
+                        style={{ backgroundColor: c.color }}
+                      />
+                    ))}
+                  </span>
+                  {t('categoriesCount', { count: game.categories.length })}
+                </span>
+              </span>
+              <svg
+                aria-hidden
+                className='size-5 shrink-0 text-mist transition-transform group-hover:translate-x-0.5 group-hover:text-amber'
+              >
+                <use href='#row-chevron' />
+              </svg>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }
 

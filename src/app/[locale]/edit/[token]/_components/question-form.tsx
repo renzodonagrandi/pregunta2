@@ -115,6 +115,7 @@ export function QuestionForm({
 
   return (
     <form
+      method='post'
       onSubmit={e => void onSubmit(e)}
       className='flex flex-col gap-3 rounded-2xl border-2 border-night bg-white p-4'
       noValidate

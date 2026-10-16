@@ -1,7 +1,9 @@
 'use server'
 
 import { updateTag } from 'next/cache'
+import { after } from 'next/server'
 import { z } from 'zod'
+import { $ZodError } from 'zod/v4/core'
 import {
   deleteImagesQuietly,
   isCategoryImageUrl,
@@ -58,12 +60,13 @@ async function edit(
     await run(row.id)
   } catch (error) {
     if (error instanceof EditFailure) return { ok: false, error: error.code }
-    if (error instanceof z.ZodError)
-      return { ok: false, error: 'INVALID_INPUT' }
+    // Base class of both classic and zod/mini errors (schemas use zod/mini).
+    if (error instanceof $ZodError) return { ok: false, error: 'INVALID_INPUT' }
     throw error
   }
   const game = await afterEdit(row.id)
-  invalidate(row.id, row.slug)
+  // Drafts aren't cached anywhere: only refresh caches for public games.
+  if (row.published || game.published) invalidate(row.id, row.slug)
   return { ok: true, game }
 }
 
@@ -71,6 +74,14 @@ function invalidate(gameId: string, slug: string) {
   updateTag(gameTag(gameId))
   updateTag(`game-slug:${slug}`)
   updateTag(PUBLISHED_GAMES_TAG)
+}
+
+/**
+ * Deleting files from Blob is a network call the user doesn't need to wait
+ * for, and Next runs a client's actions one at a time: do it after responding.
+ */
+function deleteImagesLater(urls: (string | null)[]) {
+  after(() => deleteImagesQuietly(urls))
 }
 
 export async function updateGameMetaAction(token: string, input: unknown) {
@@ -107,14 +118,14 @@ export async function setCategoryImageAction(
       throw new EditFailure('INVALID_IMAGE')
     }
     const previous = await setCategoryImage(id, catId, url)
-    if (previous && previous !== url) await deleteImagesQuietly([previous])
+    if (previous && previous !== url) deleteImagesLater([previous])
   })
 }
 
 export async function deleteCategoryAction(token: string, categoryId: string) {
   return edit(token, async id => {
     const images = await deleteCategory(id, idSchema.parse(categoryId))
-    await deleteImagesQuietly(images)
+    deleteImagesLater(images)
   })
 }
 
@@ -149,7 +160,7 @@ export async function updateQuestionAction(
       question,
     )
     if (previous && previous !== question.imageUrl) {
-      await deleteImagesQuietly([previous])
+      deleteImagesLater([previous])
     }
   })
 }
@@ -157,7 +168,7 @@ export async function updateQuestionAction(
 export async function deleteQuestionAction(token: string, questionId: string) {
   return edit(token, async id => {
     const image = await deleteQuestion(id, idSchema.parse(questionId))
-    await deleteImagesQuietly([image])
+    deleteImagesLater([image])
   })
 }
 
@@ -166,11 +177,26 @@ export async function deleteQuestionAction(token: string, questionId: string) {
  * (form cancelled, or replaced before saving). Images still referenced by a
  * question are never deleted.
  */
-export async function discardQuestionImageAction(token: string, url: string) {
-  return edit(token, async id => {
-    if (!isQuestionImageUrl(url, id)) throw new EditFailure('INVALID_IMAGE')
-    if (!(await isQuestionImageInUse(url))) await deleteImagesQuietly([url])
+export async function discardQuestionImageAction(
+  token: string,
+  url: string,
+): Promise<{ ok: true } | { ok: false; error: EditorActionError }> {
+  // Not an edit of the game itself: no updated_at bump, no cache refresh.
+  const parsedToken = editTokenSchema.safeParse(token)
+  const parsedUrl = z.string().safeParse(url)
+  if (!parsedToken.success) return { ok: false, error: 'INVALID_TOKEN' }
+  if (!parsedUrl.success) return { ok: false, error: 'INVALID_INPUT' }
+  const row = await findGameByToken(parsedToken.data)
+  if (!row) return { ok: false, error: 'INVALID_TOKEN' }
+  if (!isQuestionImageUrl(parsedUrl.data, row.id)) {
+    return { ok: false, error: 'INVALID_IMAGE' }
+  }
+  after(async () => {
+    if (!(await isQuestionImageInUse(parsedUrl.data))) {
+      await deleteImagesQuietly([parsedUrl.data])
+    }
   })
+  return { ok: true }
 }
 
 export type PublishActionResult =
@@ -185,7 +211,13 @@ export async function publishAction(
   if (!parsedToken.success) return { ok: false, error: 'INVALID_TOKEN' }
   const row = await findGameByToken(parsedToken.data)
   if (!row) return { ok: false, error: 'INVALID_TOKEN' }
-  const result = await publishGame(row.id)
+  let result
+  try {
+    result = await publishGame(row.id)
+  } catch (error) {
+    if (error instanceof EditFailure) return { ok: false, error: error.code }
+    throw error
+  }
   if (!result.ok)
     return { ok: false, error: 'NOT_READY', issues: result.issues }
   invalidate(row.id, row.slug)

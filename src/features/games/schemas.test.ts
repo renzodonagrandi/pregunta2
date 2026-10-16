@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { $ZodError } from 'zod/v4/core'
 import { editTokenSchema, questionInputSchema } from './schemas'
 
 describe('question input', () => {
@@ -36,5 +37,50 @@ describe('edit token', () => {
     expect(editTokenSchema.safeParse('a'.repeat(43)).success).toBe(true)
     expect(editTokenSchema.safeParse('a'.repeat(42)).success).toBe(false)
     expect(editTokenSchema.safeParse(`${'a'.repeat(42)}.`).success).toBe(false)
+  })
+})
+
+describe('schema errors', () => {
+  it('throw $ZodError, which server actions map to INVALID_INPUT', () => {
+    expect(() => questionInputSchema.parse({})).toThrow($ZodError)
+  })
+
+  it('defaults a missing image to null', () => {
+    const parsed = questionInputSchema.parse({
+      text: 'q',
+      options: ['a', 'b', 'c', 'd'],
+      correctIndex: 0,
+    })
+    expect(parsed.imageUrl).toBeNull()
+  })
+})
+
+describe('errors the question form reads', () => {
+  const base = { text: 'q', options: ['a', 'b', 'c', 'd'], correctIndex: 0 }
+
+  it('flags duplicated options with DUPLICATE_OPTIONS on path options', () => {
+    const r = questionInputSchema.safeParse({
+      ...base,
+      options: ['a', 'A', 'c', 'd'],
+    })
+    expect(r.success).toBe(false)
+    expect(r.error?.issues).toContainEqual(
+      expect.objectContaining({
+        message: 'DUPLICATE_OPTIONS',
+        path: ['options'],
+      }),
+    )
+  })
+
+  it('reports empty fields without the duplicate message', () => {
+    const r = questionInputSchema.safeParse({
+      ...base,
+      text: '  ',
+      options: ['a', '', 'c', 'd'],
+    })
+    expect(r.success).toBe(false)
+    expect(r.error?.issues.some(i => i.message === 'DUPLICATE_OPTIONS')).toBe(
+      false,
+    )
   })
 })
