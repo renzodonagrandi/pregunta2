@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 import { useState } from 'react'
 import { CategoryAvatar } from '@/components/category-avatar'
 import { Button } from '@/components/ui/button'
@@ -19,9 +20,9 @@ export function QuestionsStep() {
   if (!category) return null
 
   return (
-    <div className='flex flex-col gap-4'>
+    <div className='flex max-w-3xl flex-col gap-5'>
       <div
-        className='-mx-4 flex gap-2 overflow-x-auto px-4 pb-1'
+        className='-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:px-0'
         role='tablist'
       >
         {game.categories.map((c, i) => {
@@ -35,7 +36,7 @@ export function QuestionsStep() {
               role='tab'
               aria-selected={active}
               onClick={() => setSelectedId(c.id)}
-              className={`flex shrink-0 items-center gap-2 rounded-full py-1 pr-3 pl-1 text-sm font-semibold transition-all ${active ? 'text-white shadow-md' : 'bg-white ring-1 ring-zinc-200'}`}
+              className={`flex shrink-0 items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 font-display text-sm font-semibold transition-colors ${active ? 'border-transparent text-white' : 'border-chalk-300 bg-white hover:border-night/40'}`}
               style={active ? { backgroundColor: c.color } : undefined}
             >
               <CategoryAvatar
@@ -46,7 +47,7 @@ export function QuestionsStep() {
               />
               {name}
               <span
-                className={`rounded-full px-2 py-0.5 text-xs ${enough ? 'bg-emerald-100 text-emerald-800' : active ? 'bg-white/25' : 'bg-zinc-100 text-zinc-600'}`}
+                className={`rounded-full px-2 py-0.5 text-xs ${enough ? (active ? 'bg-white text-[#1b6b48]' : 'bg-ok/20 text-[#1b6b48]') : active ? 'bg-white/25' : 'bg-chalk text-night/70'}`}
               >
                 {c.questions.length}/{MIN_QUESTIONS_TO_PUBLISH}
               </span>
@@ -87,13 +88,16 @@ function CategoryQuestions({
     <section className='flex flex-col gap-3'>
       <div className='flex items-end justify-between gap-2'>
         <div>
-          <h2 className='text-xl font-bold'>{t('heading', { name })}</h2>
-          <p className='text-sm text-zinc-600'>
-            {t('total', { count: questions.length })} ·{' '}
-            {t('progress', {
-              count: Math.min(questions.length, MIN_QUESTIONS_TO_PUBLISH),
-              min: MIN_QUESTIONS_TO_PUBLISH,
-            })}
+          <h2 className='font-display text-2xl font-bold'>
+            {t('heading', { name })}
+          </h2>
+          <p className='text-sm text-night/70'>
+            {t('total', { count: questions.length })}.{' '}
+            {questions.length >= MIN_QUESTIONS_TO_PUBLISH
+              ? t('enough')
+              : t('missingToPublish', {
+                  count: MIN_QUESTIONS_TO_PUBLISH - questions.length,
+                })}
           </p>
         </div>
       </div>
@@ -101,13 +105,17 @@ function CategoryQuestions({
       {adding ? (
         <QuestionForm categoryId={categoryId} onDone={() => setAdding(false)} />
       ) : (
-        <Button className='w-full' onClick={() => setAdding(true)}>
-          + {t('add')}
+        <Button
+          variant='ink'
+          className='w-full'
+          onClick={() => setAdding(true)}
+        >
+          {t('add')}
         </Button>
       )}
 
       {questions.length === 0 && !adding && (
-        <p className='rounded-2xl bg-white p-6 text-center text-zinc-500'>
+        <p className='rounded-2xl border-2 border-dashed border-chalk-300 p-6 text-center text-night/60'>
           {t('empty')}
         </p>
       )}
@@ -150,12 +158,24 @@ function QuestionItem({
   const [confirming, setConfirming] = useState(false)
 
   return (
-    <li className='flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-sm'>
+    <li className='flex flex-col gap-2 rounded-2xl border-2 border-chalk-200 bg-white p-4'>
+      {question.imageUrl && (
+        <span className='relative block h-24 w-36 overflow-hidden rounded-lg bg-chalk'>
+          <Image
+            src={question.imageUrl}
+            alt={t('imageAlt')}
+            fill
+            sizes='9rem'
+            unoptimized
+            className='object-contain'
+          />
+        </span>
+      )}
       <p className='font-semibold'>
-        <span className='text-zinc-400'>{index}. </span>
+        <span className='font-display text-night/40'>{index}. </span>
         {question.text}
       </p>
-      <p className='text-sm text-emerald-700'>
+      <p className='text-sm text-[#1b6b48]'>
         {t('correctAnswer', {
           answer: question.options[question.correctIndex] ?? '',
         })}
@@ -194,7 +214,7 @@ function QuestionItem({
             </Button>
             <Button
               variant='ghost'
-              className='min-h-10 px-3 text-sm text-red-700'
+              className='min-h-10 px-3 text-sm text-[#a3262c]'
               onClick={() => setConfirming(true)}
             >
               {t('delete')}

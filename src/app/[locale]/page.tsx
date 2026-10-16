@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import { Suspense } from 'react'
+import { Logo } from '@/components/brand/logo'
 import { createGameAction } from './actions'
 import { CreateGameButton } from './_components/create-game-button'
 import {
@@ -14,20 +15,26 @@ export default async function HomePage() {
   ])
 
   return (
-    <main className='mx-auto flex w-full max-w-md flex-1 flex-col gap-8 px-4 py-10'>
-      <section className='flex flex-col items-center gap-3 text-center'>
-        <h1 className='text-5xl font-extrabold tracking-tight'>{t('title')}</h1>
-        <p className='text-lg text-zinc-600'>
+    <main className='mx-auto grid w-full max-w-6xl flex-1 content-start gap-14 px-5 pt-14 pb-16 lg:grid-cols-[1.15fr_1fr] lg:content-center lg:gap-24 lg:px-8 lg:py-20'>
+      <section className='flex flex-col items-start gap-6'>
+        <h1 className='w-full max-w-sm text-chalk sm:max-w-md lg:max-w-xl'>
+          <Logo label={tc('appName')} className='h-auto w-full' />
+        </h1>
+        <p className='max-w-md text-xl leading-relaxed text-chalk/85 lg:text-2xl lg:leading-snug'>
           {t('subtitle', { categories: tc('categories') })}
         </p>
-        <form action={createGameAction} className='mt-2 w-full'>
+        <form action={createGameAction} className='w-full sm:w-auto'>
           <CreateGameButton />
         </form>
-        <p className='text-sm text-zinc-500'>{t('createHint')}</p>
+        <p className='max-w-sm text-sm leading-relaxed text-mist'>
+          {t('createHint')}
+        </p>
       </section>
 
-      <section className='flex flex-col gap-3'>
-        <h2 className='text-xl font-bold'>{t('published')}</h2>
+      <section className='flex flex-col gap-2'>
+        <h2 className='font-display text-2xl font-semibold'>
+          {t('published')}
+        </h2>
         <Suspense fallback={<PublishedGamesSkeleton />}>
           <PublishedGames />
         </Suspense>

@@ -14,23 +14,27 @@ export function Scoreboard({ state }: { state: GameState }) {
   const finished = state.phase.name === 'FINISHED'
 
   return (
-    <section className='flex flex-col gap-2 rounded-2xl bg-white p-3 shadow-sm'>
+    <section className='relative z-10 flex flex-col gap-1 rounded-2xl bg-night-800/95 p-1.5'>
       {indexes.map(index => {
         const player = state.players[index]
         const active = !finished && state.current === index
         return (
           <div
             key={index}
-            className={`flex items-center gap-3 rounded-xl px-2 py-1.5 ${active ? 'bg-amber-50 ring-2 ring-amber-400' : ''}`}
+            className={`relative flex min-h-12 items-center gap-3 rounded-xl py-2 pr-2 pl-4 ${active ? 'bg-night-700/70' : ''}`}
           >
-            <div className='flex min-w-0 flex-1 flex-col'>
-              <span className='flex items-center gap-2 text-sm font-semibold'>
-                <span className='truncate'>{player.name}</span>
-                {active && (
-                  <span className='rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold tracking-wide text-amber-950 uppercase'>
-                    {t('turn')}
-                  </span>
-                )}
+            {active && (
+              <span
+                className='absolute top-2 bottom-2 left-1.5 w-1 rounded-full bg-amber'
+                aria-hidden
+              />
+            )}
+            <div className='flex min-w-0 flex-1 flex-col gap-1.5'>
+              <span
+                className={`truncate font-display text-base font-semibold ${active ? 'text-chalk' : 'text-mist'}`}
+              >
+                {player.name}
+                {active && <span className='sr-only'> · {t('turn')}</span>}
               </span>
               {active && (
                 <StreakBar
@@ -42,7 +46,7 @@ export function Scoreboard({ state }: { state: GameState }) {
                 />
               )}
             </div>
-            <ul className='flex shrink-0 gap-1'>
+            <ul className='flex shrink-0 gap-1.5'>
               {state.game.categories.map(c => {
                 const owned = hasCategory(player, c.id)
                 return (
@@ -51,7 +55,7 @@ export function Scoreboard({ state }: { state: GameState }) {
                       name={c.name}
                       color={c.color}
                       imageUrl={c.imageUrl}
-                      size={28}
+                      size={26}
                       muted={!owned}
                     />
                     <span className='sr-only'>
@@ -70,13 +74,14 @@ export function Scoreboard({ state }: { state: GameState }) {
   )
 }
 
+/** Three thick strokes, cut like the logo's letters. */
 function StreakBar({ count, label }: { count: number; label: string }) {
   return (
-    <div className='mt-1 flex items-center gap-1' role='img' aria-label={label}>
+    <div className='flex items-center gap-1' role='img' aria-label={label}>
       {Array.from({ length: STREAK_TARGET }, (_, i) => (
         <span
           key={i}
-          className={`h-2 w-8 rounded-full transition-colors ${i < count ? 'bg-emerald-500' : 'bg-zinc-200'}`}
+          className={`h-1.5 w-7 transition-colors duration-300 ${i < count ? 'bg-amber' : 'bg-night-600'}`}
         />
       ))}
     </div>

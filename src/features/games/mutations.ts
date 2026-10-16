@@ -130,11 +130,14 @@ export async function setCategoryImage(
   return previous
 }
 
-/** Deletes a category (and its questions); returns its image URL, if any. */
+/**
+ * Deletes a category and (by cascade) its questions; returns every image URL
+ * that belonged to them so the caller can remove the files.
+ */
 export async function deleteCategory(
   gameId: string,
   categoryId: string,
-): Promise<string | null> {
+): Promise<string[]> {
   const row = await getCategory(gameId, categoryId)
   const db = getDb()
   const [total] = await db
@@ -142,8 +145,14 @@ export async function deleteCategory(
     .from(categories)
     .where(eq(categories.gameId, gameId))
   if ((total?.n ?? 0) <= MIN_CATEGORIES) throw new EditFailure('MIN_CATEGORIES')
+  const questionImages = await db
+    .select({ url: questions.imageUrl })
+    .from(questions)
+    .where(eq(questions.categoryId, categoryId))
   await db.delete(categories).where(eq(categories.id, categoryId))
-  return row.imageUrl
+  return [row.imageUrl, ...questionImages.map(q => q.url)].filter(
+    (u): u is string => u !== null,
+  )
 }
 
 export async function createQuestion(
@@ -165,7 +174,7 @@ export async function createQuestion(
 
 async function getQuestion(gameId: string, questionId: string) {
   const [row] = await getDb()
-    .select({ id: questions.id })
+    .select({ id: questions.id, imageUrl: questions.imageUrl })
     .from(questions)
     .innerJoin(categories, eq(questions.categoryId, categories.id))
     .where(and(eq(questions.id, questionId), eq(categories.gameId, gameId)))
@@ -174,18 +183,34 @@ async function getQuestion(gameId: string, questionId: string) {
   return row
 }
 
+/** Updates a question; returns its previous image URL, if any. */
 export async function updateQuestion(
   gameId: string,
   questionId: string,
   input: QuestionInput,
-) {
-  await getQuestion(gameId, questionId)
+): Promise<string | null> {
+  const previous = await getQuestion(gameId, questionId)
   await getDb().update(questions).set(input).where(eq(questions.id, questionId))
+  return previous.imageUrl
 }
 
-export async function deleteQuestion(gameId: string, questionId: string) {
-  await getQuestion(gameId, questionId)
+/** Deletes a question; returns its image URL, if any. */
+export async function deleteQuestion(
+  gameId: string,
+  questionId: string,
+): Promise<string | null> {
+  const row = await getQuestion(gameId, questionId)
   await getDb().delete(questions).where(eq(questions.id, questionId))
+  return row.imageUrl
+}
+
+export async function isQuestionImageInUse(url: string): Promise<boolean> {
+  const [row] = await getDb()
+    .select({ id: questions.id })
+    .from(questions)
+    .where(eq(questions.imageUrl, url))
+    .limit(1)
+  return row !== undefined
 }
 
 export type PublishResult =

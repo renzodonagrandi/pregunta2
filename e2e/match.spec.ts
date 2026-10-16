@@ -182,7 +182,9 @@ test('duel: steal a category by answering both questions', async ({ page }) => {
     page.getByRole('heading', { name: 'Duelo contra Beto' }),
   ).toBeVisible()
   // Only one option each, so both are preselected; steal mode is explained.
-  await expect(page.getByText('Si ganás, se lo robás a Beto.')).toBeVisible()
+  await expect(
+    page.getByText(m.duel.modeSteal.replace('{name}', 'Beto')),
+  ).toBeVisible()
   await page.screenshot({ path: 'test-results/screens/08-duel-setup.png' })
   await page.getByRole('button', { name: m.duel.start }).click()
 
@@ -191,7 +193,11 @@ test('duel: steal a category by answering both questions', async ({ page }) => {
     [2, target],
   ] as const) {
     await expect(
-      page.getByText(`Duelo · pregunta ${step} de 2 · ${category}`),
+      page.getByText(
+        m.question.contextDuel
+          .replace('{step}', String(step))
+          .replace('{category}', category),
+      ),
     ).toBeVisible()
     const text = (await page.locator('main h2').first().textContent()) ?? ''
     await page

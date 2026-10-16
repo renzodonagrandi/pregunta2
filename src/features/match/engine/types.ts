@@ -19,6 +19,8 @@ export interface QuestionDef {
   id: QuestionId
   categoryId: CategoryId
   text: string
+  /** Optional picture shown with the question. */
+  imageUrl?: string | null
   options: readonly [string, string, string, string]
   correctIndex: number
 }

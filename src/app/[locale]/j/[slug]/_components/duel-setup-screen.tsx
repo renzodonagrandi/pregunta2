@@ -31,10 +31,10 @@ export function DuelSetupScreen({ state, dispatch }: ScreenProps) {
   return (
     <div className='flex flex-1 flex-col gap-5'>
       <div>
-        <h2 className='text-2xl font-bold'>
+        <h2 className='font-display text-3xl font-bold'>
           {t('title', { name: rivalName })}
         </h2>
-        <p className='mt-1 text-sm text-zinc-600'>
+        <p className='mt-2 text-sm leading-relaxed text-mist'>
           {t('rules', { name: rivalName })}
         </p>
       </div>
@@ -55,7 +55,7 @@ export function DuelSetupScreen({ state, dispatch }: ScreenProps) {
       />
 
       {target && (
-        <p className='rounded-xl bg-amber-50 p-3 text-sm font-medium text-amber-900'>
+        <p className='rounded-xl border-l-4 border-amber bg-night-800 p-3 text-sm font-medium'>
           {hasCategory(me, target)
             ? t('modeRemove', { name: rivalName })
             : t('modeSteal', { name: rivalName })}
@@ -80,7 +80,7 @@ export function DuelSetupScreen({ state, dispatch }: ScreenProps) {
         </Button>
         <Button
           variant='ghost'
-          className='w-full'
+          className='w-full text-mist'
           onClick={() => dispatch({ type: 'CANCEL_DUEL' })}
         >
           {t('back')}
@@ -105,7 +105,9 @@ function Picker({
 }) {
   return (
     <fieldset className='flex flex-col gap-2'>
-      <legend className='mb-2 text-sm font-semibold'>{label}</legend>
+      <legend className='mb-2 font-display text-sm font-semibold text-mist'>
+        {label}
+      </legend>
       <div className='flex flex-wrap gap-2'>
         {ids.map(id => {
           const c = categoryById(state, id)
@@ -117,7 +119,7 @@ function Picker({
               type='button'
               aria-pressed={active}
               onClick={() => onSelect(id)}
-              className={`flex items-center gap-2 rounded-full py-1 pr-4 pl-1 font-semibold transition-all ${active ? 'text-white shadow-md ring-4 ring-zinc-900/20' : 'bg-white ring-1 ring-zinc-300'}`}
+              className={`flex items-center gap-2 rounded-full border-2 py-1 pr-4 pl-1 font-display font-semibold transition-colors ${active ? 'border-white text-white' : 'border-night-700 bg-night-800 hover:border-night-600'}`}
               style={active ? { backgroundColor: c.color } : undefined}
             >
               <CategoryAvatar

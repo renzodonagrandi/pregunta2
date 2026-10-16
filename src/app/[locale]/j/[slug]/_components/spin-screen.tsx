@@ -58,13 +58,15 @@ export function SpinScreen({
   }
 
   return (
-    <div className='flex flex-1 flex-col items-center gap-6'>
-      <h2 className='text-2xl font-bold'>{t('title')}</h2>
+    <div className='flex flex-1 flex-col items-center gap-6 pt-2'>
+      <h2 className='font-display text-xl font-semibold text-mist'>
+        {t('title')}
+      </h2>
       <button
         type='button'
         onClick={start}
         disabled={spin !== null}
-        className='w-full max-w-xs rounded-full focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-zinc-900'
+        className='w-full max-w-[22rem] rounded-full lg:max-w-[30rem]'
         aria-label={t('button')}
       >
         <Wheel
@@ -75,7 +77,7 @@ export function SpinScreen({
         />
       </button>
       <Button
-        className='mt-auto w-full text-lg'
+        className='mt-auto w-full text-lg lg:mt-2 lg:max-w-sm'
         onClick={start}
         disabled={spin !== null}
       >

@@ -23,12 +23,12 @@ export function CategoryAvatar({
   const initial = name.trim().charAt(0).toUpperCase() || '?'
   return (
     <span
-      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-bold text-white ring-2 ring-white ${muted ? 'opacity-40 grayscale' : ''} ${className}`}
+      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-display font-bold text-white transition-[filter,opacity] ${muted ? 'opacity-30 grayscale' : ''} ${className}`}
       style={{
         width: size,
         height: size,
         backgroundColor: color,
-        fontSize: size * 0.45,
+        fontSize: size * 0.46,
       }}
       title={name}
     >

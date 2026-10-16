@@ -1,9 +1,9 @@
 # Pregunta2
 
 Trivia para dos jugadores en el mismo dispositivo, inspirada en Preguntados.
-Cualquiera puede crear su propio juego con sus categorías ("macacos") y
-preguntas, y compartirlo con un link. Sin cuentas de usuario: cada juego tiene
-un link de edición secreto.
+Cualquiera puede crear su propio juego con sus categorías y preguntas, y
+compartirlo con un link. Sin cuentas de usuario: cada juego tiene un link de
+edición secreto.
 
 ## Stack
 
@@ -39,9 +39,9 @@ Las dos cosas se crean desde el dashboard del proyecto en Vercel, pestaña
    entornos Development, Preview y Production. Vercel crea `DATABASE_URL` (y
    `DATABASE_URL_UNPOOLED`, entre otras).
 2. **Blob**: _Create Database_ → Blob, con acceso **Public**. Es importante: las
-   imágenes de los macacos las ve cualquiera que juegue, y el modo de acceso no
-   se puede cambiar después de crear el store. Conectalo al proyecto; Vercel
-   crea `BLOB_READ_WRITE_TOKEN`.
+   imágenes de las categorías y preguntas las ve cualquiera que juegue, y el
+   modo de acceso no se puede cambiar después de crear el store. Conectalo al
+   proyecto; Vercel crea `BLOB_READ_WRITE_TOKEN`.
 
 Para desarrollo local copiá esas variables a `.env.local`. Podés usar el snippet
 `.env.local` de cada store en el dashboard, o `vercel env pull .env.local` si
@@ -113,27 +113,30 @@ src/
   y el mismo código puede correr en el servidor para un modo online.
 - **Fases.**
   `SETUP_PLAYERS → TURN_CHANGE → SPINNING → REVEAL → QUESTION → CHOOSE → DUEL_SETUP → FINISHED`.
-  La pregunta normal, la pregunta por un macaco y las dos del duelo son la misma
-  fase `QUESTION`, con un `context` distinto. La respuesta queda en el estado y
-  sus consecuencias se aplican al tocar "Continuar", así que recargar mientras
-  se muestra el resultado no rompe nada.
+  La pregunta normal, la pregunta por una categoría y las dos del duelo son la
+  misma fase `QUESTION`, con un `context` distinto. La respuesta queda en el
+  estado y sus consecuencias se aplican al tocar "Continuar", así que recargar
+  mientras se muestra el resultado no rompe nada.
 - **Jugador sin opciones.** Con estas reglas no puede pasar: si te falta algún
-  macaco, siempre podés jugar por él, y si no te falta ninguno ya ganaste. Igual
-  hay dos protecciones: un juego con un macaco sin preguntas no se puede jugar,
-  y antes de mostrar la elección se chequea si alguien ganó.
+  categoría, siempre podés jugar por ella, y si no te falta ninguna ya ganaste.
+  Igual hay dos protecciones: un juego con una categoría sin preguntas no se
+  puede jugar, y antes de mostrar la elección se chequea si alguien ganó.
 - **Link de edición.** El token (32 bytes aleatorios en base64url) es la única
   autorización para editar. En la base se guarda solo su SHA-256, así que una
   filtración de la base no expone los links. La página de edición no se indexa y
   no manda `Referer`.
-- **Publicación.** Hacen falta un nombre, entre 3 y 6 macacos con nombre y
-  color, y al menos 5 preguntas por macaco. El slug legible se fija al publicar
-  por primera vez, para que los links compartidos no cambien. Si una edición
-  deja a un juego publicado sin cumplir los requisitos, vuelve a borrador y el
-  editor avisa.
-- **Imágenes.** Se comprimen en el navegador (WebP, 512 px como máximo) y se
-  suben directo a Blob. El servidor solo firma la ruta exacta de una categoría
-  del juego del token, y valida el tipo (máx. 1 MB). Las imágenes reemplazadas o
-  de macacos borrados se eliminan del store.
+- **Publicación.** Hacen falta un nombre, entre 3 y 6 categorías con nombre y
+  color, y al menos 5 preguntas por categoría. El slug legible se fija al
+  publicar por primera vez, para que los links compartidos no cambien. Si una
+  edición deja a un juego publicado sin cumplir los requisitos, vuelve a
+  borrador y el editor avisa.
+- **Imágenes.** Las categorías llevan imagen y las preguntas pueden llevar una
+  opcional. Se comprimen en el navegador (WebP, 512 px de lado para categorías y
+  1024 px para preguntas) y se suben directo a Blob. El servidor solo firma
+  rutas dentro del juego del token, valida el tipo (máx. 1 MB) y, al guardar,
+  que la URL sea de esa ruta. Las imágenes reemplazadas, las de categorías o
+  preguntas borradas y las subidas en un formulario que se canceló se eliminan
+  del store.
 - **Caché.** La partida y la lista de la home se leen con `"use cache"` y
   etiquetas; cada edición las invalida con `updateTag`. Las páginas con datos
   dinámicos usan PPR: el esqueleto se sirve estático y el contenido llega por

@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 import { CategoryAvatar } from '@/components/category-avatar'
 import { Button } from '@/components/ui/button'
 import { rivalOf, STREAK_TARGET } from '@/features/match/engine'
@@ -63,30 +64,52 @@ export function QuestionScreen({
 
   return (
     <div className='flex flex-1 flex-col gap-5'>
-      <div
-        className='flex items-center gap-3 rounded-2xl p-3 text-white shadow-sm'
-        style={{ backgroundColor: category.color }}
-      >
+      <div className='flex items-center gap-3'>
         <CategoryAvatar
           name={category.name}
           color={category.color}
           imageUrl={category.imageUrl}
-          size={44}
+          size={40}
         />
-        <span className='text-sm font-semibold'>{contextLabel}</span>
+        <span className='font-display text-sm font-semibold'>
+          {contextLabel}
+        </span>
       </div>
+      <div
+        className='h-1 w-full rounded-full'
+        style={{ backgroundColor: category.color }}
+        aria-hidden
+      />
 
-      <h2 className='text-2xl leading-snug font-bold'>{def.text}</h2>
+      {def.imageUrl && (
+        // Fixed-height frame: the layout doesn't jump while the image loads.
+        <div className='relative h-48 w-full overflow-hidden rounded-2xl bg-night-800 sm:h-60 lg:h-72'>
+          <Image
+            src={def.imageUrl}
+            alt={t('imageAlt')}
+            fill
+            priority
+            sizes='(min-width: 1024px) 42rem, 100vw'
+            unoptimized
+            className='object-contain'
+          />
+        </div>
+      )}
 
-      <ul className='flex flex-col gap-3'>
+      <h2 className='text-2xl leading-snug font-bold text-balance lg:text-3xl'>
+        {def.text}
+      </h2>
+
+      <ul className='grid gap-3 lg:grid-cols-2'>
         {question.optionOrder.map(optionIndex => {
           const isCorrect = optionIndex === def.correctIndex
           const isSelected = answer?.selectedIndex === optionIndex
-          let tone = 'bg-white ring-1 ring-zinc-300 hover:bg-zinc-100'
+          let tone =
+            'border-night-700 bg-night-800 hover:border-night-600 active:scale-[0.99]'
           if (answer) {
-            if (isCorrect) tone = 'bg-emerald-600 text-white ring-emerald-700'
-            else if (isSelected) tone = 'bg-red-600 text-white ring-red-700'
-            else tone = 'bg-white text-zinc-400 ring-1 ring-zinc-200'
+            if (isCorrect) tone = 'border-ok bg-ok text-night'
+            else if (isSelected) tone = 'border-bad bg-bad text-white'
+            else tone = 'border-night-800 bg-night-800/50 text-mist/60'
           }
           return (
             <li key={optionIndex}>
@@ -94,9 +117,12 @@ export function QuestionScreen({
                 type='button'
                 disabled={answer !== null}
                 onClick={() => dispatch({ type: 'ANSWER', optionIndex })}
-                className={`min-h-14 w-full rounded-2xl px-4 py-3 text-left text-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 ${tone}`}
+                className={`flex h-full min-h-15 w-full items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left text-lg font-medium transition-[background-color,border-color,color,transform] ${tone}`}
               >
-                {def.options[optionIndex]}
+                <span className='flex-1'>{def.options[optionIndex]}</span>
+                {answer && (isCorrect || isSelected) && (
+                  <ResultIcon correct={isCorrect} />
+                )}
               </button>
             </li>
           )
@@ -105,24 +131,24 @@ export function QuestionScreen({
 
       {answer && (
         <div
-          className='mt-auto flex animate-pop flex-col gap-3'
+          className='mt-auto flex animate-pop flex-col gap-3 lg:mt-4 lg:max-w-md'
           role='status'
           aria-live='polite'
         >
-          <div
-            className={`rounded-2xl p-4 ${answer.correct ? 'bg-emerald-50 text-emerald-900' : 'bg-red-50 text-red-900'}`}
-          >
-            <p className='text-xl font-extrabold'>
+          <div>
+            <p
+              className={`font-display text-2xl font-bold ${answer.correct ? 'text-ok' : 'text-[#ff8a8e]'}`}
+            >
               {answer.correct ? t('correct') : t('incorrect')}
             </p>
             {!answer.correct && (
-              <p className='mt-1'>
+              <p className='mt-1 text-chalk/85'>
                 {t('correctAnswer', {
                   answer: def.options[def.correctIndex] ?? '',
                 })}
               </p>
             )}
-            {outcome && <p className='mt-1 font-medium'>{outcome}</p>}
+            {outcome && <p className='mt-1 text-mist'>{outcome}</p>}
           </div>
           <Button
             className='w-full text-lg'
@@ -134,5 +160,20 @@ export function QuestionScreen({
         </div>
       )}
     </div>
+  )
+}
+
+function ResultIcon({ correct }: { correct: boolean }) {
+  return (
+    <svg viewBox='0 0 24 24' className='size-6 shrink-0' aria-hidden>
+      <path
+        d={correct ? 'M5 12.5l4.5 4.5L19 7.5' : 'M7 7l10 10M17 7L7 17'}
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='3'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
   )
 }

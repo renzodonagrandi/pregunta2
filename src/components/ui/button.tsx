@@ -1,17 +1,24 @@
 import type { ButtonHTMLAttributes } from 'react'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
+/**
+ * primary: the amber action (one per screen). ink: solid navy, for chalk
+ * backgrounds. outline / ghost use currentColor, so they adapt to either
+ * background. danger: destructive confirmation.
+ */
+type Variant = 'primary' | 'ink' | 'outline' | 'ghost' | 'danger'
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-zinc-900 text-white hover:bg-zinc-700 disabled:bg-zinc-400',
-  secondary:
-    'bg-white text-zinc-900 ring-1 ring-zinc-300 hover:bg-zinc-100 disabled:text-zinc-400',
-  ghost: 'text-zinc-700 hover:bg-zinc-200/60 disabled:text-zinc-400',
-  danger: 'bg-red-700 text-white hover:bg-red-600 disabled:bg-red-300',
+  primary:
+    'bg-amber text-night hover:bg-amber-600 disabled:bg-night-700 disabled:text-mist',
+  ink: 'bg-night text-chalk hover:bg-night-800 disabled:bg-chalk-300 disabled:text-night/50',
+  outline:
+    'border-2 border-current/30 hover:border-current/60 hover:bg-current/5 disabled:opacity-40',
+  ghost: 'hover:bg-current/10 disabled:opacity-40',
+  danger: 'bg-bad text-white hover:brightness-110 disabled:opacity-40',
 }
 
 export function buttonClass(variant: Variant = 'primary', extra = ''): string {
-  return `inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-5 py-3 text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed ${VARIANTS[variant]} ${extra}`
+  return `inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-display text-base font-semibold tracking-wide transition-colors disabled:cursor-not-allowed ${VARIANTS[variant]} ${extra}`
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
