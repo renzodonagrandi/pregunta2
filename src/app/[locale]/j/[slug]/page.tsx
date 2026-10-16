@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { getPlayableGame } from '@/features/games/queries'
@@ -28,10 +30,21 @@ async function PlayLoader({
   params: PageProps<'/[locale]/j/[slug]'>['params']
 }) {
   const { slug } = await params
-  const game = await getPlayableGame(slug)
+  const [game, { Match: matchMessages }] = await Promise.all([
+    getPlayableGame(slug),
+    getMessages(),
+  ])
   if (!game) notFound()
+  // The rules render on the server (sidebar slot): their text needn't ship.
+  const clientMatchMessages = Object.fromEntries(
+    Object.entries(matchMessages).filter(([key]) => key !== 'rules'),
+  )
   // The static rules are rendered here instead of shipping in the client
   // bundle. The full game is passed as-is: it's part of the saved match
   // format in localStorage, so trimming fields would discard saved matches.
-  return <Match game={game} sidebar={<RulesCard />} />
+  return (
+    <NextIntlClientProvider messages={{ Match: clientMatchMessages }}>
+      <Match game={game} sidebar={<RulesCard />} />
+    </NextIntlClientProvider>
+  )
 }

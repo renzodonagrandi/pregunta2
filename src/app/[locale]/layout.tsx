@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
-import { getTranslations } from 'next-intl/server'
+import { getMessages, getTranslations } from 'next-intl/server'
 import { Atkinson_Hyperlegible_Next, Oxanium } from 'next/font/google'
 import { notFound } from 'next/navigation'
 import { locale as rootLocale } from 'next/root-params'
@@ -47,6 +47,9 @@ export default async function LocaleLayout({
 }: LayoutProps<'/[locale]'>) {
   const locale = await rootLocale()
   if (!hasLocale(routing.locales, locale)) notFound()
+  // Every message passed here ships to the browser on every page. The layout
+  // only needs what error.tsx shows; each route provides its own namespaces.
+  const { Errors } = await getMessages()
 
   return (
     <html
@@ -54,7 +57,9 @@ export default async function LocaleLayout({
       className={`${display.variable} ${text.variable} h-full`}
     >
       <body className='flex min-h-full flex-col'>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider messages={{ Errors }}>
+          {children}
+        </NextIntlClientProvider>
       </body>
     </html>
   )

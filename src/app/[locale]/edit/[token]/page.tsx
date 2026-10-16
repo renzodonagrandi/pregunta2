@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages, getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { getEditorGameByToken } from '@/features/games/queries'
@@ -36,7 +37,21 @@ async function EditorLoader({
   const { token } = await params
   const parsed = editTokenSchema.safeParse(token)
   if (!parsed.success) notFound()
-  const game = await getEditorGameByToken(parsed.data)
+  const [game, messages] = await Promise.all([
+    getEditorGameByToken(parsed.data),
+    getMessages(),
+  ])
   if (!game) notFound()
-  return <Editor token={parsed.data} initialGame={game} />
+  const { Editor: editorMessages, Common, Match } = messages
+  return (
+    <NextIntlClientProvider
+      messages={{
+        Editor: editorMessages,
+        Common,
+        Match: { reveal: Match.reveal },
+      }}
+    >
+      <Editor token={parsed.data} initialGame={game} />
+    </NextIntlClientProvider>
+  )
 }
