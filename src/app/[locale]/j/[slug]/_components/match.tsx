@@ -15,17 +15,17 @@ import {
   type GameState,
 } from '@/features/match/engine'
 import { clearMatch, loadMatch, saveMatch } from '@/features/match/storage'
-import { ChooseScreen } from './choose-screen'
-import { DuelSetupScreen } from './duel-setup-screen'
-import { FinishedScreen } from './finished-screen'
-import { MatchHeader } from './match-header'
-import { MatchSkeleton } from './match-skeleton'
-import { QuestionScreen } from './question-screen'
-import { RevealScreen } from './reveal-screen'
-import { Scoreboard } from './scoreboard'
+import { ChooseScreen } from '@/features/match/ui/choose-screen'
+import { DuelSetupScreen } from '@/features/match/ui/duel-setup-screen'
+import { FinishedScreen } from '@/features/match/ui/finished-screen'
+import { MatchHeader } from '@/features/match/ui/match-header'
+import { MatchSkeleton } from '@/features/match/ui/match-skeleton'
+import { QuestionScreen } from '@/features/match/ui/question-screen'
+import { RevealScreen } from '@/features/match/ui/reveal-screen'
+import { Scoreboard } from '@/features/match/ui/scoreboard'
 import { SetupPlayersScreen } from './setup-players-screen'
-import { SpinScreen } from './spin-screen'
-import { TurnChangeScreen } from './turn-change-screen'
+import { SpinScreen } from '@/features/match/ui/spin-screen'
+import { TurnChangeScreen } from '@/features/match/ui/turn-change-screen'
 
 const noopSubscribe = () => () => {}
 
@@ -37,21 +37,23 @@ interface MatchProps {
   game: GameDefinition
   /** Server-rendered content for the desktop sidebar, under the scores. */
   sidebar?: ReactNode
+  /** Published game slug: enables "play online" on the setup screen. */
+  slug?: string | undefined
 }
 
-export function Match({ game, sidebar }: MatchProps) {
+export function Match({ game, sidebar, slug }: MatchProps) {
   const isClient = useSyncExternalStore(
     noopSubscribe,
     () => true,
     () => false,
   )
   if (!isClient) return <MatchSkeleton />
-  return <MatchGame game={game} sidebar={sidebar} />
+  return <MatchGame game={game} sidebar={sidebar} slug={slug} />
 }
 
 type MatchAction = GameAction | { type: 'RESET' }
 
-function MatchGame({ game, sidebar }: MatchProps) {
+function MatchGame({ game, sidebar, slug }: MatchProps) {
   const [state, dispatch] = useReducer(
     (s: GameState, a: MatchAction) =>
       a.type === 'RESET' ? createInitialState(game) : gameReducer(s, a),
@@ -95,7 +97,7 @@ function MatchGame({ game, sidebar }: MatchProps) {
         {(() => {
           switch (phase.name) {
             case 'SETUP_PLAYERS':
-              return <SetupPlayersScreen dispatch={dispatch} />
+              return <SetupPlayersScreen dispatch={dispatch} slug={slug} />
             case 'TURN_CHANGE':
               return <TurnChangeScreen state={state} dispatch={dispatch} />
             case 'SPINNING':

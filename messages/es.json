@@ -7,7 +7,9 @@
     "appName": "Pregunta2",
     "category": "categoría",
     "categories": "categorías",
-    "back": "Volver"
+    "back": "Volver",
+    "copy": "Copiar",
+    "copied": "¡Copiado!"
   },
   "Home": {
     "title": "Pregunta2",
@@ -241,6 +243,64 @@
       "body": "Es la única forma de volver a editar este juego. Si salís sin guardarlo, no vas a poder retomarlo.",
       "stay": "Seguir editando",
       "leave": "Salir"
+    }
+  },
+  "Online": {
+    "setup": {
+      "modeLocal": "Mismo dispositivo",
+      "modeOnline": "Online",
+      "modeLabel": "Cómo juegan",
+      "onlineTitle": "Jugá con alguien a distancia",
+      "onlineHint": "Creás la partida, le mandás el link a la otra persona y juegan por turnos, cada uno desde su dispositivo.",
+      "yourName": "Tu nombre",
+      "create": "Crear partida",
+      "creating": "Creando…"
+    },
+    "invite": {
+      "title": "Invitá a alguien",
+      "body": "Mandale este link. Cuando entre y ponga su nombre, empezás vos.",
+      "link": "Link de invitación",
+      "share": "Compartir",
+      "shareText": "¡Jugá conmigo a {title} en Pregunta2!",
+      "waiting": "Esperando que se sume…"
+    },
+    "join": {
+      "title": "{name} te invitó a jugar",
+      "yourName": "Tu nombre",
+      "join": "Unirme a la partida",
+      "joining": "Uniéndome…",
+      "full": "Esta partida ya tiene dos jugadores",
+      "fullHint": "Pedile a quien te invitó que cree una partida nueva.",
+      "home": "Ir al inicio"
+    },
+    "turn": {
+      "yourTurn": "¡Te toca!",
+      "yourTurnHint": "Jugás hasta que te equivoques; después le toca a {name}.",
+      "start": "Empezar turno",
+      "theirTurn": "Le toca a {name}",
+      "theirTurnHint": "Esta pantalla se actualiza sola. Podés cerrarla y volver cuando quieras: la partida queda en «Tus partidas», en el inicio.",
+      "you": "vos"
+    },
+    "errors": {
+      "NOT_YOUR_TURN": "Ahora no es tu turno.",
+      "STALE": "La partida cambió. Ya te mostramos lo último.",
+      "MATCH_FULL": "Esta partida ya tiene dos jugadores.",
+      "NOT_A_PLAYER": "No sos jugador de esta partida.",
+      "GAME_NOT_FOUND": "Este juego ya no está publicado.",
+      "MATCH_NOT_FOUND": "No encontramos esta partida.",
+      "ILLEGAL": "Esa jugada no es válida ahora.",
+      "INVALID_NAME": "Ingresá un nombre de hasta 24 caracteres.",
+      "INVALID_INPUT": "Esa jugada no es válida.",
+      "UNKNOWN": "No se pudo conectar. Probá de nuevo."
+    },
+    "home": {
+      "title": "Tus partidas",
+      "yourTurn": "Te toca",
+      "theirTurn": "Le toca a {name}",
+      "waiting": "Esperando rival",
+      "finished": "Terminada",
+      "open": "Abrir partida de {title}",
+      "versus": "contra {name}"
     }
   }
 }
