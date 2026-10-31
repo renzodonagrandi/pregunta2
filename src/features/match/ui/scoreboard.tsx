@@ -8,7 +8,16 @@ import {
 } from '@/features/match/engine'
 
 /** Both players' categories, whose turn it is, and the current streak. */
-export function Scoreboard({ state }: { state: GameState }) {
+export function Scoreboard({
+  state,
+  you,
+  youLabel,
+}: {
+  state: GameState
+  /** Online play: marks the viewer's row. */
+  you?: PlayerIndex | undefined
+  youLabel?: string | undefined
+}) {
   const t = useTranslations('Match.scoreboard')
   const indexes: PlayerIndex[] = [0, 1]
   const finished = state.phase.name === 'FINISHED'
@@ -34,6 +43,11 @@ export function Scoreboard({ state }: { state: GameState }) {
                 className={`truncate font-display text-base font-semibold ${active ? 'text-chalk' : 'text-mist'}`}
               >
                 {player.name}
+                {you === index && youLabel && (
+                  <span className='ml-1.5 text-xs font-medium text-mist'>
+                    ({youLabel})
+                  </span>
+                )}
                 {active && <span className='sr-only'> · {t('turn')}</span>}
               </span>
               {active && (

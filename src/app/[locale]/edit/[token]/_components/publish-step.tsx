@@ -10,7 +10,7 @@ import {
 } from '@/features/games/constants'
 import { publishIssues, type PublishIssue } from '@/features/games/requirements'
 import { publishAction } from '../actions'
-import { CopyField } from './copy-field'
+import { CopyField } from '@/components/copy-field'
 import { useEditor } from './editor-context'
 import { useEditLink, usePlayLink } from './use-links'
 
@@ -76,7 +76,12 @@ export function PublishStep() {
             {t('publish.publicLink')}
           </h3>
           <p className='text-sm text-night/70'>{t('publish.publicHint')}</p>
-          <CopyField value={playLink} label={t('publish.publicLink')} />
+          <CopyField
+            value={playLink}
+            label={t('publish.publicLink')}
+            copyLabel={t('publish.copy')}
+            copiedLabel={t('publish.copied')}
+          />
           <a href={playLink} className={buttonClass('primary', 'mt-2 w-full')}>
             {t('publish.play')}
           </a>
@@ -88,7 +93,12 @@ export function PublishStep() {
           <p className='text-sm font-medium text-[#8f1f24]'>
             {t('publish.editWarning')}
           </p>
-          <CopyField value={editLink} label={t('publish.editLink')} />
+          <CopyField
+            value={editLink}
+            label={t('publish.editLink')}
+            copyLabel={t('publish.copy')}
+            copiedLabel={t('publish.copied')}
+          />
         </div>
       </section>
     )

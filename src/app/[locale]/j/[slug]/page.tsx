@@ -5,8 +5,8 @@ import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { getPlayableGame } from '@/features/games/queries'
 import { Match } from './_components/match'
-import { MatchSkeleton } from './_components/match-skeleton'
-import { RulesCard } from './_components/rules-card'
+import { MatchSkeleton } from '@/features/match/ui/match-skeleton'
+import { RulesCard } from '@/features/match/ui/rules-card'
 
 export async function generateMetadata({
   params,
@@ -30,7 +30,7 @@ async function PlayLoader({
   params: PageProps<'/[locale]/j/[slug]'>['params']
 }) {
   const { slug } = await params
-  const [game, { Match: matchMessages, Common }] = await Promise.all([
+  const [game, { Match: matchMessages, Common, Online }] = await Promise.all([
     getPlayableGame(slug),
     getMessages(),
   ])
@@ -43,8 +43,10 @@ async function PlayLoader({
   // bundle. The full game is passed as-is: it's part of the saved match
   // format in localStorage, so trimming fields would discard saved matches.
   return (
-    <NextIntlClientProvider messages={{ Match: clientMatchMessages, Common }}>
-      <Match game={game} sidebar={<RulesCard />} />
+    <NextIntlClientProvider
+      messages={{ Match: clientMatchMessages, Common, Online }}
+    >
+      <Match game={game} sidebar={<RulesCard />} slug={slug} />
     </NextIntlClientProvider>
   )
 }

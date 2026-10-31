@@ -1,11 +1,23 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 
-export function CopyField({ value, label }: { value: string; label: string }) {
-  const t = useTranslations('Editor.publish')
+interface CopyFieldProps {
+  value: string
+  /** Accessible name of the field. */
+  label: string
+  copyLabel: string
+  copiedLabel: string
+}
+
+/** Read-only field with a copy button (the field stays selectable). */
+export function CopyField({
+  value,
+  label,
+  copyLabel,
+  copiedLabel,
+}: CopyFieldProps) {
   const [copied, setCopied] = useState(false)
 
   const copy = async () => {
@@ -32,7 +44,7 @@ export function CopyField({ value, label }: { value: string; label: string }) {
         className='min-h-11 shrink-0 px-4 text-sm'
         onClick={copy}
       >
-        {copied ? t('copied') : t('copy')}
+        {copied ? copiedLabel : copyLabel}
       </Button>
     </div>
   )

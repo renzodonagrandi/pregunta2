@@ -9,7 +9,7 @@ import type { EditorGame } from '@/features/games/types'
 import { Link, useRouter } from '@/i18n/navigation'
 import type { EditorActionError, EditorActionResult } from '../actions'
 import { CategoriesStep } from './categories-step'
-import { CopyField } from './copy-field'
+import { CopyField } from '@/components/copy-field'
 import { EditorContext, type SaveStatus } from './editor-context'
 import { LeaveDialog } from './leave-dialog'
 import { PublishStep } from './publish-step'
@@ -145,7 +145,12 @@ export function Editor({
               </summary>
               <div className='flex flex-col gap-2 px-3 pb-3'>
                 <p className='text-night/70'>{t('saveLinkHint')}</p>
-                <CopyField value={editLink} label={t('publish.editLink')} />
+                <CopyField
+                  value={editLink}
+                  label={t('publish.editLink')}
+                  copyLabel={t('publish.copy')}
+                  copiedLabel={t('publish.copied')}
+                />
               </div>
             </details>
           </div>

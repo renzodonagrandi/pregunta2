@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { CopyField } from './copy-field'
+import { CopyField } from '@/components/copy-field'
 
 /**
  * Shown before leaving the editor: the edit link is the only way back, so
@@ -51,7 +51,12 @@ export function LeaveDialog({
           {t('leave.title')}
         </h2>
         <p className='text-night/80'>{t('leave.body')}</p>
-        <CopyField value={editLink} label={t('publish.editLink')} />
+        <CopyField
+          value={editLink}
+          label={t('publish.editLink')}
+          copyLabel={t('publish.copy')}
+          copiedLabel={t('publish.copied')}
+        />
         <div className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
           <Button variant='ghost' onClick={onLeave}>
             {t('leave.leave')}

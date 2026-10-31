@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { Logo } from '@/components/brand/logo'
 import { createGameAction } from './actions'
 import { CreateGameButton } from './_components/create-game-button'
+import { MyMatches } from './_components/my-matches'
 import {
   PublishedGames,
   PublishedGamesSkeleton,
@@ -35,14 +36,20 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <section className='flex flex-col gap-2'>
-        <h2 className='font-display text-2xl font-semibold'>
-          {t('published')}
-        </h2>
-        <Suspense fallback={<PublishedGamesSkeleton />}>
-          <PublishedGames />
+      <div className='flex flex-col gap-10'>
+        {/* Per-browser (cookies): streamed separately from the cached list. */}
+        <Suspense fallback={null}>
+          <MyMatches />
         </Suspense>
-      </section>
+        <section className='flex flex-col gap-2'>
+          <h2 className='font-display text-2xl font-semibold'>
+            {t('published')}
+          </h2>
+          <Suspense fallback={<PublishedGamesSkeleton />}>
+            <PublishedGames />
+          </Suspense>
+        </section>
+      </div>
     </main>
   )
 }

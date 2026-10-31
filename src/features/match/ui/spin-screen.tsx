@@ -15,6 +15,11 @@ const REDUCED_SPIN_MS = 700
 interface SpinScreenProps extends ScreenProps {
   rotation: number
   onRotationChange: (rotation: number) => void
+  /**
+   * Online play: the server decides the result. `request` returns the slice
+   * index (or null on failure); `done` runs once the wheel has stopped.
+   */
+  remote?: { request: () => Promise<number | null>; done: () => void }
 }
 
 export function SpinScreen({
@@ -22,25 +27,36 @@ export function SpinScreen({
   dispatch,
   rotation,
   onRotationChange,
+  remote,
 }: SpinScreenProps) {
   const t = useTranslations('Match.spin')
   const tReveal = useTranslations('Match.reveal')
   const slices = wheelSlices(state.game, tReveal('crown'))
   const [spin, setSpin] = useState<{ index: number; ms: number } | null>(null)
+  const [requesting, setRequesting] = useState(false)
 
-  // Report the result to the engine once the animation has finished.
+  // Report the result once the animation has finished.
   useEffect(() => {
     if (!spin) return
-    const id = setTimeout(
-      () => dispatch({ type: 'SPIN', segmentIndex: spin.index }),
-      spin.ms + 150,
-    )
+    const id = setTimeout(() => {
+      if (remote) remote.done()
+      else dispatch({ type: 'SPIN', segmentIndex: spin.index })
+    }, spin.ms + 150)
     return () => clearTimeout(id)
-  }, [spin, dispatch])
+  }, [spin, dispatch, remote])
 
-  const start = () => {
-    if (spin) return
-    const index = randomInt(cryptoRng, slices.length)
+  const start = async () => {
+    if (spin || requesting) return
+    let index: number
+    if (remote) {
+      setRequesting(true)
+      const result = await remote.request()
+      setRequesting(false)
+      if (result === null) return
+      index = result
+    } else {
+      index = randomInt(cryptoRng, slices.length)
+    }
     const reduced = window.matchMedia(
       '(prefers-reduced-motion: reduce)',
     ).matches
@@ -64,8 +80,8 @@ export function SpinScreen({
       </h2>
       <button
         type='button'
-        onClick={start}
-        disabled={spin !== null}
+        onClick={() => void start()}
+        disabled={spin !== null || requesting}
         className='w-full max-w-[22rem] rounded-full lg:max-w-[30rem]'
         aria-label={t('button')}
       >
@@ -78,10 +94,10 @@ export function SpinScreen({
       </button>
       <Button
         className='mt-auto w-full text-lg lg:mt-2 lg:max-w-sm'
-        onClick={start}
-        disabled={spin !== null}
+        onClick={() => void start()}
+        disabled={spin !== null || requesting}
       >
-        {spin ? t('spinning') : t('button')}
+        {spin || requesting ? t('spinning') : t('button')}
       </Button>
     </div>
   )
